@@ -1,4 +1,4 @@
-const LOCAL_DEV_SITE_URL = "http://localhost:3000";
+const LOCAL_DEV_SITE_URL = "https://asia-electronics-frontend.vercel.app";
 
 /**
  * Canonical site URL used for metadata, canonical links and JSON-LD.
