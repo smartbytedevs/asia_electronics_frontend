@@ -1,0 +1,284 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #08142e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-jost), Arial, Helvetica, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/*
+ * Asia Electronics brand system.
+ *
+ * Navy, white and electric blue only. Legacy token names (sand, ivory, cream,
+ * mocha, gold, …) are kept as semantic aliases so every existing storefront
+ * and admin surface picks up the new identity without a component rewrite.
+ */
+@theme {
+  --color-navy: #08142e;
+  --color-navy-soft: #12264a;
+  --color-electric: #1f6bff;
+  --color-electric-deep: #0c4bd1;
+  --color-electric-soft: #e8f0ff;
+
+  --color-sand: #eef3fb;
+  --color-ivory: #f7f9fd;
+  --color-cream: #ffffff;
+  --color-mocha: #274a7d;
+  --color-mocha-deep: #162e55;
+  --color-gold: #1f6bff;
+  --color-gold-soft: #cfe0ff;
+  --color-ink: #08142e;
+  --color-muted: #61708c;
+
+  --font-display: var(--font-jost), Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-jost), Arial, Helvetica, sans-serif;
+
+  --shadow-card: 0 18px 50px -32px rgba(8, 20, 46, 0.35);
+  --shadow-lift: 0 26px 70px -34px rgba(8, 20, 46, 0.4);
+}
+
+/* Headings are geometric and confident, never thin. */
+.font-display {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jost), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #1f6bff;
+  color: #ffffff;
+}
+
+/* Thin, cool-toned scrollbar (desktop only). */
+@media (pointer: fine) {
+  html {
+    scrollbar-color: #c3cfe3 #ffffff;
+    scrollbar-width: thin;
+  }
+}
+
+/*
+ * Hero decoration.
+ *
+ * A faint engineering grid and two soft light pools give the navy hero depth
+ * without an image, video or weigh-down. Purely decorative and paints in the
+ * first frame, so it can never delay the headline.
+ */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to bottom, black 62%, transparent 100%);
+}
+
+/*
+ * Authentication animation utilities.
+ * Plain CSS so server-rendered HTML and the hydrated first render match.
+ */
+@keyframes auth-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes auth-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes auth-sway {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  50% {
+    rotate: 2.5deg;
+  }
+}
+
+@keyframes auth-spin-slow {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.auth-fade {
+  animation: auth-fade 0.8s ease-out both;
+}
+
+.auth-rise {
+  animation: auth-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-float {
+  animation: auth-float 11s ease-in-out infinite;
+}
+
+.auth-sway {
+  animation: auth-sway 26s ease-in-out infinite;
+}
+
+.auth-spin-slow {
+  animation: auth-spin-slow 120s linear infinite;
+}
+
+.auth-stagger > * {
+  animation: auth-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-stagger > *:nth-child(1) {
+  animation-delay: 0.06s;
+}
+
+.auth-stagger > *:nth-child(2) {
+  animation-delay: 0.11s;
+}
+
+.auth-stagger > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.auth-stagger > *:nth-child(4) {
+  animation-delay: 0.21s;
+}
+
+.auth-stagger > *:nth-child(5) {
+  animation-delay: 0.26s;
+}
+
+.auth-stagger > *:nth-child(6) {
+  animation-delay: 0.31s;
+}
+
+/*
+ * Skeleton shimmer used by admin loading states.
+ */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(207, 224, 255, 0.35) 25%,
+    rgba(247, 249, 253, 0.95) 50%,
+    rgba(207, 224, 255, 0.35) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/*
+ * Route loading boundary (StoreLoader).
+ *
+ * Pure CSS, paints in the first frame and stops when the route renders.
+ */
+@keyframes store-loader-arc {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes store-loader-sweep {
+  0% {
+    transform: translateX(-4rem);
+  }
+  100% {
+    transform: translateX(8rem);
+  }
+}
+
+@keyframes store-loader-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.store-loader-ring {
+  transform-origin: center;
+}
+
+.store-loader-arc {
+  transform-origin: center;
+  animation: store-loader-arc 1.6s linear infinite;
+}
+
+.store-loader-progress {
+  animation: store-loader-sweep 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.store-loader-dot {
+  animation: store-loader-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-loader-arc,
+  .store-loader-progress,
+  .store-loader-dot {
+    animation-duration: 3.6s;
+  }
+}
+
+/*
+ * Admin backdrop.
+ *
+ * The admin shell is transparent so a very faint cool wash shows through;
+ * every panel sits on a solid surface above it, so text stays readable.
+ */
+.admin-damask {
+  background: transparent;
+}
