@@ -9,7 +9,14 @@ const ABSOLUTE_URL = /^https?:\/\//i;
  * The `className` lands on the wrapping frame so hover transforms work for
  * both branches.
  */
-export function ProductImage({ src, alt, className = "", imgClassName = "", sizes = "400px" }) {
+export function ProductImage({
+  src,
+  alt,
+  className = "",
+  imgClassName = "",
+  sizes = "400px",
+  preload = false,
+}) {
   const absolute = typeof src === "string" && ABSOLUTE_URL.test(src);
 
   return (
@@ -20,6 +27,7 @@ export function ProductImage({ src, alt, className = "", imgClassName = "", size
           alt={alt || "Product image"}
           fill
           sizes={sizes}
+          preload={preload}
           className={imgClassName || "object-cover"}
         />
       ) : (

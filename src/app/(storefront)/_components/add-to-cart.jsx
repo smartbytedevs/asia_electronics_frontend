@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { buildCartEntry, useCart } from "./cart-context";
 import { MinusIcon, PlusIcon } from "./icons";
+import { ProductContactButtons } from "./product-contact-buttons";
 import { getProductAvailability } from "@/lib/api/products";
 import { formatMinorUnits } from "@/lib/utils";
 
@@ -16,7 +17,7 @@ export function QuantityStepper({ value, onChange, disabled = false, max = MAX_Q
   const canDecrease = !disabled && value > 1;
 
   return (
-    <div className="inline-flex items-center rounded-full border border-sand bg-white">
+    <div className="inline-flex items-center rounded-full border border-sand bg-white justify-center">
       <button
         type="button"
         disabled={!canDecrease}
@@ -449,33 +450,52 @@ export function ProductPurchase({ product }) {
           </p>
         ) : null}
 
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-          <QuantityStepper
-            value={cappedQuantity}
-            onChange={setQuantity}
-            disabled={controlsDisabled}
-            max={maxQuantity}
-          />
-          <AddToCartButton
-            product={product}
-            variantId={selected?.id ?? null}
-            selectedSize={selectedSize ?? null}
-            quantity={cappedQuantity}
-            disabled={controlsDisabled}
-            className="inline-flex flex-1 items-center justify-center rounded-full bg-ink px-8 py-3.5 text-sm font-semibold tracking-wide text-white transition-colors hover:bg-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50"
-          >
-            Add to cart
-          </AddToCartButton>
-          <OrderNowButton
-            product={product}
-            variantId={selected?.id ?? null}
-            selectedSize={selectedSize ?? null}
-            quantity={cappedQuantity}
-            disabled={controlsDisabled}
-            className="inline-flex flex-1 items-center justify-center rounded-full border border-ink/15 bg-white px-8 py-3.5 text-sm font-semibold tracking-wide text-ink transition-colors hover:border-electric/40 hover:bg-electric-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40"
-          >
-            Buy now
-          </OrderNowButton>
+        <div className="mt-7">
+          <div className="mb-3 flex">
+            <QuantityStepper
+              value={cappedQuantity}
+              onChange={setQuantity}
+              disabled={controlsDisabled}
+              max={maxQuantity}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <motion.div
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              className="w-full"
+            >
+              <AddToCartButton
+                product={product}
+                variantId={selected?.id ?? null}
+                selectedSize={selectedSize ?? null}
+                quantity={cappedQuantity}
+                disabled={controlsDisabled}
+                className="inline-flex h-12 w-full items-center justify-center whitespace-nowrap rounded-full bg-ink px-4 py-3.5 text-sm font-semibold tracking-wide text-white transition-colors hover:bg-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50 sm:px-6"
+              >
+                Add to cart
+              </AddToCartButton>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              className="w-full"
+            >
+              <OrderNowButton
+                product={product}
+                variantId={selected?.id ?? null}
+                selectedSize={selectedSize ?? null}
+                quantity={cappedQuantity}
+                disabled={controlsDisabled}
+                className="inline-flex h-12 w-full items-center justify-center whitespace-nowrap rounded-full border border-ink/15 bg-white px-4 py-3.5 text-sm font-semibold tracking-wide text-ink transition-colors hover:border-electric/40 hover:bg-electric-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 sm:px-6"
+              >
+                Buy now
+              </OrderNowButton>
+            </motion.div>
+            <ProductContactButtons productName={product.name} bare />
+          </div>
         </div>
         {status}
       </div>

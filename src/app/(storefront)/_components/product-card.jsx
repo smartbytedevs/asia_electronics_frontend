@@ -184,7 +184,7 @@ export function ProductCard({ product, className = "" }) {
           src={product.images?.[0]?.url}
           alt={product.images?.[0]?.alt || product.name}
           sizes="(min-width: 1280px) 20vw, (min-width: 640px) 280px, 82vw"
-          imgClassName="object-contain p-6 transition-transform duration-500 ease-out group-hover:scale-[1.06] sm:p-7"
+          imgClassName="h-full w-full object-contain object-center p-5 transition-transform duration-500 ease-out group-hover:scale-[1.06] sm:p-6"
         />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(31,107,255,0.1),transparent_55%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5">

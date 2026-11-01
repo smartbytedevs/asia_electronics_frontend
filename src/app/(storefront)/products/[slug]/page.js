@@ -7,7 +7,7 @@ import { EmptyState } from "../../_components/empty-state";
 import { Reveal } from "../../_components/reveal";
 import { ChevronRightIcon, GemIcon, StarIcon } from "../../_components/icons";
 import { formatDate } from "@/lib/utils";
-import { absoluteUrl, absoluteImageUrls } from "@/lib/seo";
+import { SITE_URL, absoluteUrl, absoluteImageUrls } from "@/lib/seo";
 import {
   fetchProductBySlug,
   fetchProductReviews,
@@ -20,23 +20,39 @@ export async function generateMetadata({ params }) {
   try {
     const product = await fetchProductBySlug(slug);
     if (product) {
-      const description =
+      const rawDescription =
         typeof product.description === "string"
-          ? product.description.slice(0, 155)
-          : `Shop ${product.name} at Asia Electronics.`;
+          ? product.description.trim()
+          : "";
+      const description = rawDescription
+        ? rawDescription.slice(0, 155)
+        : `Shop ${product.name}${
+            product.category?.name ? ` in ${product.category.name}` : ""
+          } at Asia Electronics — genuine product, official warranty and delivery across Bangladesh.`;
       const ogImage = product.images?.[0]?.url || "/bg.jpg";
+      const keywords = [
+        product.name,
+        product.brand,
+        product.category?.name,
+        "Asia Electronics",
+        "Bangladesh",
+      ].filter(Boolean);
       return {
         title: product.name,
         description,
+        keywords,
         alternates: {
           canonical: absoluteUrl(`/products/${product.slug}`),
         },
+        ...(product.isActive === false
+          ? { robots: { index: false, follow: true } }
+          : {}),
         openGraph: {
           type: "website",
           url: absoluteUrl(`/products/${product.slug}`),
           title: `${product.name} | Asia Electronics`,
           description,
-          images: [absoluteUrl(ogImage)],
+          images: [{ url: absoluteUrl(ogImage), alt: product.name }],
         },
         twitter: {
           card: "summary_large_image",
@@ -311,7 +327,28 @@ export default async function ProductPage({ params }) {
     product.isActive !== false && (!hasVariants || activeVariants.length > 0);
   const priceMinor =
     product.effectiveSellingPrice ?? product.sellingPrice;
-  const sku = activeVariants.map((v) => v.sku).find(Boolean);
+  const sku =
+    product.stockKeepingUnit ||
+    activeVariants.map((v) => v.sku).find(Boolean);
+  const hasPrice =
+    priceMinor !== null && priceMinor !== undefined && priceMinor !== "";
+  const numericPrice = hasPrice ? Number(priceMinor) : NaN;
+  const price =
+    Number.isFinite(numericPrice) && numericPrice >= 0
+      ? numericPrice / 100
+      : undefined;
+  const productDescription =
+    typeof product.description === "string" && product.description.trim()
+      ? product.description.trim()
+      : undefined;
+  const brandName =
+    typeof product.brand === "string" && product.brand.trim()
+      ? product.brand.trim()
+      : undefined;
+  const modelNumber =
+    typeof product.modelNumber === "string" && product.modelNumber.trim()
+      ? product.modelNumber.trim()
+      : undefined;
 
   const productUrl = absoluteUrl(`/products/${product.slug}`);
 
@@ -319,14 +356,12 @@ export default async function ProductPage({ params }) {
     { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
     { "@type": "ListItem", position: 2, name: "All Products", item: absoluteUrl("/collection") },
   ];
-  if (product.category?.name) {
+  if (product.category?.name && product.category?.slug) {
     breadcrumbItems.push({
       "@type": "ListItem",
       position: 3,
       name: product.category.name,
-      item: product.category.slug
-        ? absoluteUrl(`/categories/${product.category.slug}`)
-        : undefined,
+      item: absoluteUrl(`/categories/${product.category.slug}`),
     });
   }
   breadcrumbItems.push({
@@ -337,17 +372,42 @@ export default async function ProductPage({ params }) {
   });
 
   const reviewData = await fetchProductReviews(product.id).catch(() => null);
+  const averageRating = Number(reviewData?.summary?.averageRating);
+  const totalReviews = Number(reviewData?.summary?.totalReviews);
   const aggregateRating =
-    reviewData?.summary?.totalReviews > 0 &&
-    Number.isFinite(reviewData.summary.averageRating)
+    Number.isFinite(averageRating) && averageRating > 0 && totalReviews > 0
       ? {
           "@type": "AggregateRating",
-          ratingValue: reviewData.summary.averageRating,
-          reviewCount: reviewData.summary.totalReviews,
+          ratingValue: averageRating,
+          reviewCount: totalReviews,
           bestRating: 5,
           worstRating: 1,
         }
       : undefined;
+
+  const offer =
+    price !== undefined
+      ? {
+          "@type": "Offer",
+          url: productUrl,
+          priceCurrency: "BDT",
+          price,
+          availability: inStock
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+          itemCondition: "https://schema.org/NewCondition",
+          seller: {
+            "@type": "Organization",
+            "@id": `${SITE_URL}/#organization`,
+            name: "Asia Electronics",
+            url: SITE_URL,
+          },
+        }
+      : undefined;
+
+  const productImages = absoluteImageUrls(
+    (product.images || []).map((img) => img.url)
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -360,24 +420,15 @@ export default async function ProductPage({ params }) {
         "@type": "Product",
         "@id": `${productUrl}#product`,
         name: product.name,
-        image: absoluteImageUrls((product.images || []).map((img) => img.url)),
-        description:
-          typeof product.description === "string"
-            ? product.description
-            : undefined,
+        url: productUrl,
+        ...(productImages.length > 0 ? { image: productImages } : {}),
+        description: productDescription,
         category: product.category?.name,
         ...(sku ? { sku } : {}),
+        ...(modelNumber ? { mpn: modelNumber } : {}),
+        ...(brandName ? { brand: { "@type": "Brand", name: brandName } } : {}),
         ...(aggregateRating ? { aggregateRating } : {}),
-        offers: {
-          "@type": "Offer",
-          url: productUrl,
-          priceCurrency: "BDT",
-          price: Number.isFinite(priceMinor) ? priceMinor / 100 : undefined,
-          availability: inStock
-            ? "https://schema.org/InStock"
-            : "https://schema.org/OutOfStock",
-          itemCondition: "https://schema.org/NewCondition",
-        },
+        ...(offer ? { offers: offer } : {}),
       },
     ],
   };

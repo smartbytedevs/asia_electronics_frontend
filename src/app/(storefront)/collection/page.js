@@ -15,11 +15,19 @@ export const dynamic = "force-dynamic";
 const SORTS = new Set(["newest", "priceAsc", "priceDesc", "featured"]);
 
 const COLLECTION_DESCRIPTION =
-  "Browse the full Asia Electronics catalog — speakers, sound boxes, torch lights, fans, trimmers and home electronics with official warranty.";
+  "Browse all Asia Electronics products — speakers, sound boxes, rechargeable torch lights, electric fans, trimmers and grooming devices, with official warranty and delivery across Chittagong and Bangladesh.";
 
 export const metadata = {
   title: "All Products",
   description: COLLECTION_DESCRIPTION,
+  keywords: [
+    "Asia Electronics products",
+    "electronics shop in Chittagong",
+    "speakers in Bangladesh",
+    "rechargeable torch lights",
+    "electric fans",
+    "trimmers",
+  ],
   alternates: {
     canonical: absoluteUrl("/collection"),
   },
@@ -28,7 +36,14 @@ export const metadata = {
     url: absoluteUrl("/collection"),
     title: "All Products | Asia Electronics",
     description: COLLECTION_DESCRIPTION,
-    images: [{ url: absoluteUrl("/bg.jpg"), width: 1376, height: 768 }],
+    images: [
+      {
+        url: absoluteUrl("/bg.jpg"),
+        width: 1376,
+        height: 768,
+        alt: "Asia Electronics product catalog",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

@@ -1,4 +1,5 @@
 import { AdminNav } from "./admin-nav";
+import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,14 +12,7 @@ export function AdminSidebar({ user, className }) {
   return (
     <aside className={cn("flex h-full flex-col bg-cream/95", className)}>
       <div className="flex h-16 shrink-0 items-center border-b border-gold-soft/70 px-5">
-        <div>
-          <span className="block font-display text-sm leading-tight tracking-[0.22em] text-ink">
-            ASIA
-          </span>
-          <span className="mt-0.5 block text-[0.55rem] font-semibold uppercase tracking-[0.32em] text-gold">
-            Electronics
-          </span>
-        </div>
+        <BrandLogo href="/admin" imgClassName="h-11" sizes="140px" />
       </div>
 
       <div className="flex-1 overflow-y-auto py-5">

@@ -26,11 +26,12 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const HOMEPAGE_TITLE = "Asia Electronics — Genuine Tech, Better Everyday";
 const HOMEPAGE_DESCRIPTION =
-  "Shop genuine speakers, sound boxes, torch lights, fans, trimmers and home electronics at Asia Electronics — official warranty, honest prices and expert support across Bangladesh.";
+  "Shop genuine speakers, sound boxes, rechargeable torch lights, electric fans, trimmers and grooming devices at Asia Electronics — official warranty and delivery across Chittagong and Bangladesh.";
 
 export const metadata = {
-  title: "Asia Electronics — Genuine Tech, Better Everyday",
+  title: { absolute: HOMEPAGE_TITLE },
   description: HOMEPAGE_DESCRIPTION,
   alternates: {
     canonical: absoluteUrl("/"),
@@ -40,7 +41,7 @@ export const metadata = {
     url: absoluteUrl("/"),
     siteName: "Asia Electronics",
     locale: "en_BD",
-    title: "Asia Electronics — Genuine Tech, Better Everyday",
+    title: HOMEPAGE_TITLE,
     description: HOMEPAGE_DESCRIPTION,
     images: [
       {
@@ -53,7 +54,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Asia Electronics — Genuine Tech, Better Everyday",
+    title: HOMEPAGE_TITLE,
     description: HOMEPAGE_DESCRIPTION,
     images: [absoluteUrl("/bg.jpg")],
   },
@@ -147,13 +148,14 @@ function LiveCategorySlider({ categories }) {
               href={`/categories/${category.slug}`}
               className="group relative flex aspect-[4/3] w-[160px] shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-ink p-4 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50 sm:w-[180px]"
             >
-              <ProductImage
-                src={category.image}
-                alt={category.name}
-                sizes="(min-width: 1024px) 25vw, 50vw"
-                imgClassName="object-cover opacity-60 transition-transform duration-700 group-hover:scale-105"
-                className="absolute inset-0"
-              />
+              <div className="absolute inset-0">
+                <ProductImage
+                  src={category.image}
+                  alt={category.name}
+                  sizes="(min-width: 1024px) 25vw, 50vw"
+                  imgClassName="h-full w-full object-cover object-center opacity-60 transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
               <span
                 aria-hidden="true"
                 className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-transparent"
@@ -439,8 +441,20 @@ export default async function HomePage() {
         "@id": `${SITE_URL}/#organization`,
         name: "Asia Electronics",
         url: SITE_URL,
-        logo: absoluteUrl("/favicon.ico"),
+        logo: absoluteUrl("/logo/logo.png"),
         description: HOMEPAGE_DESCRIPTION,
+        slogan: "Genuine tech, better everyday",
+        areaServed: [
+          { "@type": "Country", name: "Bangladesh" },
+          { "@type": "City", name: "Chittagong" },
+        ],
+        knowsAbout: [
+          "Consumer electronics",
+          "Speakers and sound boxes",
+          "Rechargeable torch lights",
+          "Electric fans",
+          "Trimmers and grooming devices",
+        ],
       },
       {
         "@type": "WebSite",
@@ -448,6 +462,7 @@ export default async function HomePage() {
         url: SITE_URL,
         name: "Asia Electronics",
         alternateName: "Asia Electronics BD",
+        description: HOMEPAGE_DESCRIPTION,
         inLanguage: "en",
         publisher: { "@id": `${SITE_URL}/#organization` },
       },

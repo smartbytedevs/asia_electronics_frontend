@@ -1,6 +1,6 @@
 # Frontend Authentication Integration (Better Auth)
 
-Local-development authentication for the Taqwa frontend using
+Local-development authentication for the Asia Electronics frontend using
 [Better Auth](https://better-auth.com) `1.6.26`. The production integration is
 also wired end to end (see "Production contract" below); this document focuses
 on the explicit, documented local configuration.
@@ -12,7 +12,7 @@ on the explicit, documented local configuration.
 - Server-side session enforcement on `/dashboard` (redirects to `/login`).
 - JWT plugin: the frontend acts as a local identity provider. It mints
   RS256-signed JWTs and exposes its public keys at a JWKS endpoint so the
-  Taqwa backend can verify tokens signed by this frontend.
+  Asia Electronics backend can verify tokens signed by this frontend.
 - Backend integration: the `/dashboard` server component acquires the JWT for
   the current session, calls `GET /api/v1/me` on the backend with
   `Authorization: Bearer <JWT>`, and renders the application user (role,
@@ -36,7 +36,7 @@ on the explicit, documented local configuration.
 | `src/lib/mongodb.js` | Shared MongoDB client/database handle for Better Auth (globalThis-cached) |
 | `src/lib/auth-client.js` | Browser-side auth client used by client components |
 | `src/lib/backend-auth.js` | Acquires the Better Auth JWT for the current session (`auth.api.getToken`) |
-| `src/lib/api-client.js` | Minimal HTTP client for the Taqwa backend (`Authorization: Bearer <JWT>`) |
+| `src/lib/api-client.js` | Minimal HTTP client for the Asia Electronics backend (`Authorization: Bearer <JWT>`) |
 | `src/app/api/auth/[...all]/route.js` | Next.js App Router handler exposing all Better Auth endpoints |
 | `src/config/env.js` | `env.api.baseUrl` / `env.auth.baseUrl` / `env.auth.basePath` |
 
@@ -49,10 +49,10 @@ See `.env.example`. Required for local development:
 | `BETTER_AUTH_SECRET` | — | Required. Signs session tokens and encrypts the JWT private key at rest. Generate with `openssl rand -base64 32`. |
 | `BETTER_AUTH_URL` | `http://localhost:3000` | Public base URL of this app. |
 | `BETTER_AUTH_BASE_PATH` | `/api/auth` | Mount path of the Better Auth API. |
-| `BETTER_AUTH_TRUSTED_ORIGINS` | — | Comma-separated extra browser origins trusted for cookies / CSRF. The `baseUrl` origin is always trusted automatically. Production: `https://www.taqwactg.com,https://taqwactg.com`. |
+| `BETTER_AUTH_TRUSTED_ORIGINS` | — | Comma-separated extra browser origins trusted for cookies / CSRF. The `baseUrl` origin is always trusted automatically. Production: `https://www.asiaelectronicsonline.com,https://asiaelectronicsonline.com`. |
 | `BETTER_AUTH_JWT_ALGORITHM` | `RS256` | Asymmetric algorithm for the JWT plugin key pair. |
 | `BETTER_AUTH_JWT_EXPIRATION_TIME` | `15m` | JWT lifetime. |
-| `MONGODB_URI` | — | Required. Connection string for the database that persists Better Auth data. The database name comes from the URI (e.g. `taqwa`). Server-side only; never committed. |
+| `MONGODB_URI` | — | Required. Connection string for the database that persists Better Auth data. The database name comes from the URI (e.g. `asiaelectronics`). Server-side only; never committed. |
 
 `BETTER_AUTH_SECRET` and `MONGODB_URI` are read from the environment in the
 server modules; the rest flow through `src/config/env.js` (or the auth module
@@ -122,7 +122,7 @@ Better Auth (frontend, owns authentication/sessions)
     ↓  RS256 JWT
 Authorization: Bearer <JWT>
     ↓
-Taqwa backend  (Express, owns application users + roles)
+Asia Electronics backend  (Express, owns application users + roles)
     ↓  JWKS verification (issuer/audience/algorithm/expiry)
 sub  →  authProviderId
     ↓
@@ -163,7 +163,7 @@ Better Auth persists authentication data in MongoDB via the native driver
 (`better-auth/adapters/mongodb`). Connection details:
 
 - **URI:** `MONGODB_URI` (required; server-side only, gitignored). The database
-  name comes from the URI (local development uses the `taqwa` database).
+  name comes from the URI (local development uses the `asiaelectronics` database).
 - **Client:** `src/lib/mongodb.js` exports `getBetterAuthMongoClient()` and
   `getBetterAuthDb()`. The client is cached on `globalThis` because the Next.js
   dev server compiles route handlers and server components into separate module
@@ -225,37 +225,37 @@ www site):
 
 | | Production value |
 | --- | --- |
-| Frontend (this app) | `https://www.taqwactg.com` (apex `https://taqwactg.com` 308-redirects to it) |
-| Better Auth base path | `https://www.taqwactg.com/api/auth` |
-| JWT minting endpoint | `GET https://www.taqwactg.com/api/auth/token` (session cookie required) |
-| JWKS | `GET https://www.taqwactg.com/api/auth/jwks` |
-| Issuer / Audience | `https://www.taqwactg.com` |
+| Frontend (this app) | `https://www.asiaelectronicsonline.com` (apex `https://asiaelectronicsonline.com` 308-redirects to it) |
+| Better Auth base path | `https://www.asiaelectronicsonline.com/api/auth` |
+| JWT minting endpoint | `GET https://www.asiaelectronicsonline.com/api/auth/token` (session cookie required) |
+| JWKS | `GET https://www.asiaelectronicsonline.com/api/auth/jwks` |
+| Issuer / Audience | `https://www.asiaelectronicsonline.com` |
 | Algorithm | `RS256` |
-| Backend base URL | `https://taqwa-backend.vercel.app/api/v1` |
-| Backend issuer/audience/JWKS env | `BETTER_AUTH_ISSUER`, `BETTER_AUTH_AUDIENCE`, `BETTER_AUTH_JWKS_URL` = `https://www.taqwactg.com` (`.../api/auth/jwks`) |
+| Backend base URL | `https://asia-electronics-backend.vercel.app/api/v1` |
+| Backend issuer/audience/JWKS env | `BETTER_AUTH_ISSUER`, `BETTER_AUTH_AUDIENCE`, `BETTER_AUTH_JWKS_URL` = `https://www.asiaelectronicsonline.com` (`.../api/auth/jwks`) |
 | Authenticated endpoint (current) | `GET /me` |
 | Auth transport | `Authorization: Bearer <JWT>` |
 
 Frontend production env vars (Vercel):
 
 ```dotenv
-BETTER_AUTH_URL=https://www.taqwactg.com
+BETTER_AUTH_URL=https://www.asiaelectronicsonline.com
 BETTER_AUTH_BASE_PATH=/api/auth
-BETTER_AUTH_TRUSTED_ORIGINS=https://www.taqwactg.com,https://taqwactg.com
+BETTER_AUTH_TRUSTED_ORIGINS=https://www.asiaelectronicsonline.com,https://asiaelectronicsonline.com
 BETTER_AUTH_JWT_ALGORITHM=RS256
 BETTER_AUTH_JWT_EXPIRATION_TIME=15m
-NEXT_PUBLIC_API_URL=https://taqwa-backend.vercel.app/api/v1
+NEXT_PUBLIC_API_URL=https://asia-electronics-backend.vercel.app/api/v1
 ```
 
 Backend production env vars (Vercel):
 
 ```dotenv
-BETTER_AUTH_JWKS_URL=https://www.taqwactg.com/api/auth/jwks
-BETTER_AUTH_ISSUER=https://www.taqwactg.com
-BETTER_AUTH_AUDIENCE=https://www.taqwactg.com
+BETTER_AUTH_JWKS_URL=https://www.asiaelectronicsonline.com/api/auth/jwks
+BETTER_AUTH_ISSUER=https://www.asiaelectronicsonline.com
+BETTER_AUTH_AUDIENCE=https://www.asiaelectronicsonline.com
 BETTER_AUTH_ALGORITHMS=RS256
-CORS_ORIGINS=https://www.taqwactg.com,https://taqwactg.com
-STORE_URL=https://www.taqwactg.com
-ADMIN_DASHBOARD_BASE_URL=https://www.taqwactg.com/admin/dashboard
-ADMIN_EMAIL=ctgtaqwa@gmail.com
+CORS_ORIGINS=https://www.asiaelectronicsonline.com,https://asiaelectronicsonline.com
+STORE_URL=https://www.asiaelectronicsonline.com
+ADMIN_DASHBOARD_BASE_URL=https://www.asiaelectronicsonline.com/admin/dashboard
+ADMIN_EMAIL=<admin-recipient-email>
 ```

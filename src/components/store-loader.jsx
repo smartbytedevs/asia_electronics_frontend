@@ -1,11 +1,12 @@
+import { BrandLogoImage } from "@/components/brand-logo";
+
 /**
  * StoreLoader
  *
  * The single, brand-consistent loading state used by every App Router loading
  * boundary across the site — root, storefront and admin. A quiet Asia
- * Electronics brand moment: a navy tile with an electric bolt sits at the
- * centre of a sweeping electric ring, above a thin progress light and a
- * pulsing dot.
+ * Electronics brand moment: the supplied logo sits at the centre of a sweeping
+ * electric ring, above a thin progress light and a pulsing dot.
  *
  * Pure CSS animation (no JavaScript), so the streaming fallback stays
  * hydration-safe and paints immediately. Nothing here is a splash screen —
@@ -47,20 +48,11 @@ export function StoreLoader({ className = "min-h-dvh" }) {
           />
         </svg>
 
-        <span className="store-loader-mark relative flex h-16 w-16 items-center justify-center rounded-2xl bg-ink text-white shadow-[0_22px_50px_-24px_rgba(8,20,46,0.9)]">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-7 w-7"
-          >
-            <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z" />
-          </svg>
-        </span>
+        <BrandLogoImage
+          className="store-loader-mark relative h-20"
+          sizes="240px"
+          priority
+        />
 
         <div className="relative mt-8 h-px w-32 overflow-hidden bg-ink/10">
           <span className="store-loader-progress absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-transparent via-electric to-transparent" />

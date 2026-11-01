@@ -1,7 +1,8 @@
 # Frontend Architecture
 
-This document describes the current Taqwa frontend: its stack, module layout,
-authentication model, and how it talks to the Taqwa backend. It is written
+This document describes the current Asia Electronics frontend: its stack, module
+layout, authentication model, and how it talks to the Asia Electronics backend.
+It is written
 from the verified source tree and is intentionally scoped to what exists
 today.
 
@@ -240,14 +241,14 @@ were removed when the analytics dashboard replaced it.
 
 `src/config/env.js` normalizes env into `env.api.baseUrl` and
 `env.auth.baseUrl` / `env.auth.basePath` / `env.auth.trustedOrigins` with
-production defaults (`https://taqwa-backend.vercel.app/api/v1`,
-`https://www.taqwactg.com`, `/api/auth`). See `.env.example`:
+production defaults (`https://asia-electronics-backend.vercel.app/api/v1`,
+`https://www.asiaelectronicsonline.com`, `/api/auth`). See `.env.example`:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | `https://taqwa-backend.vercel.app/api/v1` | Backend base URL (browser-reachable; used server-side too) |
+| `NEXT_PUBLIC_API_URL` | `https://asia-electronics-backend.vercel.app/api/v1` | Backend base URL (browser-reachable; used server-side too) |
 | `BETTER_AUTH_SECRET` | — | Signs session tokens + encrypts the JWT private key at rest (server-only, never committed) |
-| `BETTER_AUTH_URL` | `https://www.taqwactg.com` | Public base URL of this app |
+| `BETTER_AUTH_URL` | `https://www.asiaelectronicsonline.com` | Public base URL of this app |
 | `BETTER_AUTH_BASE_PATH` | `/api/auth` | Mount path of the Better Auth API |
 | `BETTER_AUTH_TRUSTED_ORIGINS` | — | Comma-separated extra trusted browser origins (base URL origin is always trusted) |
 | `BETTER_AUTH_JWT_ALGORITHM` | `RS256` | JWT plugin key algorithm |

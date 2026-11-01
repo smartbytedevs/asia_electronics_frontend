@@ -3,8 +3,8 @@ const DEFAULT_AUTH_BASE_PATH = "/api/auth";
 // Safe local-development defaults. They are used ONLY outside production when
 // the corresponding variable is missing, so a missing value can never fall
 // back to a hosted deployment (which could belong to another store).
-const LOCAL_DEV_API_URL = "https://asia-electronics-backend.vercel.app/api/v1";
-const LOCAL_DEV_ORIGIN = "https://asia-electronics-frontend.vercel.app";
+const LOCAL_DEV_API_URL = "http://localhost:8080/api/v1";
+const LOCAL_DEV_ORIGIN = "http://localhost:3000";
 
 const isProduction = process.env.NODE_ENV === "production";
 

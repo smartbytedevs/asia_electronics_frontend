@@ -1,16 +1,62 @@
-const LOCAL_DEV_SITE_URL = "https://asia-electronics-frontend.vercel.app";
+const LOCAL_DEV_SITE_URL = "http://localhost:3000";
+const PRODUCTION_SITE_URL = "https://www.asiaelectronicsonline.com";
+
+export const SITE_NAME = "Asia Electronics";
+export const SITE_DESCRIPTION =
+  "Shop genuine speakers, sound boxes, torch lights, fans, trimmers and grooming devices at Asia Electronics. Official warranty and delivery across Chittagong and Bangladesh.";
 
 /**
- * Canonical site URL used for metadata, canonical links and JSON-LD.
- *
- * `NEXT_PUBLIC_SITE_URL` must be set for production deployments. When it is
- * missing, production fails loudly instead of publishing another store's
- * domain, while local development falls back to localhost.
+ * Normalizes the configured site URL to the canonical HTTPS/www origin.
+ * The apex `asiaelectronicsonline.com` host is always rewritten to `www`.
+ */
+function normalizeSiteUrl(value) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  if (!trimmed) {
+    return "";
+  }
+
+  const withProtocol = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
+  try {
+    const url = new URL(withProtocol);
+    if (url.hostname === "asiaelectronicsonline.com") {
+      url.hostname = "www.asiaelectronicsonline.com";
+    }
+    if (
+      url.protocol !== "https:" &&
+      !/^(localhost|127\.0\.0\.1)$/i.test(url.hostname)
+    ) {
+      url.protocol = "https:";
+    }
+    return url.origin;
+  } catch {
+    return trimmed;
+  }
+}
+
+function isLocalSiteUrl(value) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(value);
+}
+
+/**
+ * Canonical site URL used for metadata, canonical links, sitemap, robots and
+ * JSON-LD. Production always resolves to the official www domain: an apex
+ * domain is rewritten, and a missing/local value falls back to the official
+ * production origin instead of publishing localhost URLs.
  */
 function resolveSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (configured) {
-    return configured.replace(/\/+$/, "");
+    const normalized = normalizeSiteUrl(configured);
+    if (process.env.NODE_ENV === "production" && isLocalSiteUrl(normalized)) {
+      console.warn(
+        `[seo] NEXT_PUBLIC_SITE_URL points to a local address; using ${PRODUCTION_SITE_URL}.`
+      );
+      return PRODUCTION_SITE_URL;
+    }
+    return normalized;
   }
 
   if (process.env.NODE_ENV !== "production") {
@@ -21,10 +67,10 @@ function resolveSiteUrl() {
     return LOCAL_DEV_SITE_URL;
   }
 
-  throw new Error(
-    "NEXT_PUBLIC_SITE_URL is not set. Add it to the environment (see .env.example). " +
-      "Refusing to publish canonical URLs for a different domain."
+  console.warn(
+    `[seo] NEXT_PUBLIC_SITE_URL is not set; using ${PRODUCTION_SITE_URL}.`
   );
+  return PRODUCTION_SITE_URL;
 }
 
 export const SITE_URL = resolveSiteUrl();

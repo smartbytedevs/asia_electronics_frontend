@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Ensure these files exist inside your public/banner/ folder
@@ -34,10 +35,13 @@ export function BannerSlider() {
             transition={{ duration: 0.6, ease: "easeInOut" }}
             className="absolute inset-0 h-full w-full"
           >
-            <img
+            <Image
               src={BANNER_IMAGES[currentIndex]}
-              alt={`Asia Electronics Promotional Banner ${currentIndex + 1}`}
-              className="h-full w-full object-cover object-center"
+              alt={`Asia Electronics promotional banner ${currentIndex + 1}`}
+              fill
+              sizes="(min-width: 1280px) 1216px, 100vw"
+              preload={currentIndex === 0}
+              className="object-cover object-center"
             />
           </motion.div>
         </AnimatePresence>

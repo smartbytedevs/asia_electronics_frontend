@@ -70,7 +70,7 @@ export async function StoreHeader({ categories }) {
               accountHref={accountHref}
               accountLabel={accountLabel}
             />
-            <BrandLogo />
+            <BrandLogo priority />
           </div>
 
           <div className="hidden min-w-0 flex-1 justify-center md:flex">

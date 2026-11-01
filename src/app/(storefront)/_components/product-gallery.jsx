@@ -19,7 +19,7 @@ export function ProductGallery({ images, name }) {
 
   if (list.length === 0) {
     return (
-      <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-sand">
+      <div className="relative aspect-square overflow-hidden rounded-3xl bg-sand sm:aspect-[4/5]">
         <ProductImage src={null} alt={name} sizes="(min-width: 1024px) 50vw, 100vw" />
       </div>
     );
@@ -29,7 +29,7 @@ export function ProductGallery({ images, name }) {
 
   return (
       <div>
-        <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-sand">
+        <div className="relative aspect-square overflow-hidden rounded-3xl bg-sand sm:aspect-[4/5]">
           <motion.div
             key={current.url}
             initial={{ opacity: 0 }}
@@ -39,8 +39,10 @@ export function ProductGallery({ images, name }) {
           >
             <ProductImage
               src={current.url}
-              alt={current.alt || name}
+              alt={current.alt || `${name} — Asia Electronics`}
               sizes="(min-width: 1024px) 50vw, 100vw"
+              preload={active === 0}
+              imgClassName="h-full w-full object-contain object-center p-4 sm:p-6 lg:p-8"
             />
           </motion.div>
         </div>
@@ -60,7 +62,12 @@ export function ProductGallery({ images, name }) {
                     : "opacity-70 hover:opacity-100")
                 }
               >
-                <ProductImage src={image.url} alt="" sizes="64px" />
+                <ProductImage
+                  src={image.url}
+                  alt=""
+                  sizes="64px"
+                  imgClassName="h-full w-full object-contain object-center p-1.5"
+                />
               </button>
             ))}
           </div>

@@ -1,5 +1,5 @@
 import localFont from "next/font/local";
-import { SITE_URL, absoluteUrl } from "@/lib/seo";
+import { SITE_URL, SITE_DESCRIPTION, absoluteUrl } from "@/lib/seo";
 import "./globals.css";
 
 // Self-hosted variable font (woff2 committed under src/app/fonts/). No
@@ -12,25 +12,35 @@ const jost = localFont({
 });
 
 const BRAND = "Asia Electronics";
-const DESCRIPTION =
-  "Shop genuine speakers, sound boxes, torch lights, fans, trimmers and home electronics at Asia Electronics — official warranty, honest prices and expert support across Bangladesh.";
+const DESCRIPTION = SITE_DESCRIPTION;
+const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || SITE_URL),
+  metadataBase: new URL(SITE_URL),
   applicationName: BRAND,
   title: {
     default: "Asia Electronics — Genuine Tech, Better Everyday",
     template: "%s | Asia Electronics",
   },
   description: DESCRIPTION,
+  ...(GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: GOOGLE_SITE_VERIFICATION } }
+    : {}),
+  icons: {
+    icon: [{ url: "/logo/logo.png", type: "image/png", sizes: "1536x1024" }],
+    shortcut: ["/logo/logo.png"],
+    apple: [{ url: "/logo/logo.png", type: "image/png" }],
+  },
   keywords: [
     "Asia Electronics",
-    "electronics Bangladesh",
-    "speakers",
+    "electronics shop in Chittagong",
+    "electronics shop in Bangladesh",
+    "speakers in Bangladesh",
     "sound boxes",
-    "torch lights",
+    "rechargeable torch lights",
     "electric fans",
     "trimmers",
+    "grooming devices",
     "official warranty",
   ],
   robots: {

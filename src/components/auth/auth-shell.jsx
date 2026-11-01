@@ -1,6 +1,6 @@
 "use client";
 
-import { BoltMark } from "./auth-brand";
+import { BrandLogoImage } from "@/components/brand-logo";
 
 /**
  * Responsive layout for the authentication experience.
@@ -35,7 +35,7 @@ function BrandPanel() {
         <div className="absolute inset-0 rounded-full border border-electric/20" />
         <div className="absolute inset-4 rounded-full border border-dashed border-ink/10" />
         <div className="absolute inset-8 rounded-full bg-white shadow-[0_26px_60px_-30px_rgba(8,20,46,0.55)]" />
-        <BoltMark className="relative h-14 w-14 text-electric" />
+        <BrandLogoImage className="relative h-20" sizes="240px" />
       </div>
 
       <span className="text-[0.66rem] font-semibold uppercase tracking-[0.42em] text-electric">

@@ -9,7 +9,7 @@ import {
   fetchCategoryBySlug,
   fetchProducts,
 } from "../../lib/catalog-data";
-import { absoluteUrl } from "@/lib/seo";
+import { SITE_URL, absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -20,22 +20,41 @@ export async function generateMetadata({ params }) {
   try {
     const category = await fetchCategoryBySlug(slug);
     if (category) {
-      const description =
+      const rawDescription =
         typeof category.description === "string"
-          ? category.description
-          : `Shop ${category.name} at Asia Electronics.`;
+          ? category.description.trim()
+          : "";
+      const description = rawDescription
+        ? rawDescription.slice(0, 155)
+        : `Shop ${category.name} at Asia Electronics — genuine products, official warranty and delivery across Chittagong and Bangladesh.`;
       return {
         title: category.name,
         description,
+        keywords: [
+          category.name,
+          `${category.name} in Bangladesh`,
+          "Asia Electronics",
+          "Chittagong",
+        ],
         alternates: {
           canonical: absoluteUrl(`/categories/${category.slug}`),
         },
+        ...(category.isActive === false
+          ? { robots: { index: false, follow: true } }
+          : {}),
         openGraph: {
           type: "website",
           url: absoluteUrl(`/categories/${category.slug}`),
           title: `${category.name} | Asia Electronics`,
           description,
-          images: [{ url: absoluteUrl("/bg.jpg"), width: 1376, height: 768 }],
+          images: [
+            {
+              url: absoluteUrl("/bg.jpg"),
+              width: 1376,
+              height: 768,
+              alt: `${category.name} at Asia Electronics`,
+            },
+          ],
         },
         twitter: {
           card: "summary_large_image",
@@ -86,22 +105,67 @@ export default async function CategoryPage({ params, searchParams }) {
   }).catch(() => null);
   const products = data?.products ?? [];
 
-  const breadcrumbJsonLd = {
+  const collectionUrl = absoluteUrl(`/categories/${category.slug}`);
+  const categoryDescription =
+    typeof category.description === "string" && category.description.trim()
+      ? category.description.trim()
+      : `Shop ${category.name} at Asia Electronics — genuine products, official warranty and delivery across Chittagong and Bangladesh.`;
+  const productItems = products
+    .filter((product) => product?.slug)
+    .map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: absoluteUrl(`/products/${product.slug}`),
+      name: product.name,
+    }));
+
+  const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+    "@graph": [
       {
-        "@type": "ListItem",
-        position: 2,
-        name: "All Products",
-        item: absoluteUrl("/collection"),
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: absoluteUrl("/"),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "All Products",
+            item: absoluteUrl("/collection"),
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: category.name,
+            item: collectionUrl,
+          },
+        ],
       },
       {
-        "@type": "ListItem",
-        position: 3,
-        name: category.name,
-        item: absoluteUrl(`/categories/${category.slug}`),
+        "@type": "CollectionPage",
+        "@id": `${collectionUrl}#collection`,
+        url: collectionUrl,
+        name: `${category.name} | Asia Electronics`,
+        description: categoryDescription,
+        isPartOf: {
+          "@type": "WebSite",
+          "@id": `${SITE_URL}/#website`,
+          name: "Asia Electronics",
+          url: SITE_URL,
+        },
+        ...(productItems.length > 0
+          ? {
+              mainEntity: {
+                "@type": "ItemList",
+                numberOfItems: productItems.length,
+                itemListElement: productItems,
+              },
+            }
+          : {}),
       },
     ],
   };
@@ -110,13 +174,22 @@ export default async function CategoryPage({ params, searchParams }) {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <nav aria-label="Breadcrumb" className="text-xs text-muted">
         <ol className="flex items-center gap-2">
           <li>
             <Link href="/" className="transition-colors hover:text-mocha">
               Home
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link
+              href="/collection"
+              className="transition-colors hover:text-mocha"
+            >
+              All Products
             </Link>
           </li>
           <li aria-hidden="true">/</li>
