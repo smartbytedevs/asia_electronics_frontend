@@ -14,6 +14,7 @@ import {
   SpeakerIcon,
 } from "./_components/icons";
 import { SITE_URL, absoluteUrl } from "@/lib/seo";
+import { SITE_CONTACT } from "@/lib/site-contact";
 import { fetchCategories, fetchProducts, fetchRecentReviews } from "./lib/catalog-data";
 import {
   BESTSELLER_TRACKS,
@@ -444,6 +445,22 @@ export default async function HomePage() {
         logo: absoluteUrl("/logo/logo.png"),
         description: HOMEPAGE_DESCRIPTION,
         slogan: "Genuine tech, better everyday",
+        telephone: SITE_CONTACT.phoneTel,
+        email: SITE_CONTACT.email,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: `${SITE_CONTACT.address.line1}, ${SITE_CONTACT.address.line2}`,
+          addressLocality: SITE_CONTACT.address.city,
+          addressCountry: "BD",
+        },
+        contactPoint: {
+          "@type": "ContactPoint",
+          telephone: SITE_CONTACT.phoneTel,
+          email: SITE_CONTACT.email,
+          contactType: "customer service",
+          areaServed: "BD",
+          availableLanguage: ["en", "bn"],
+        },
         areaServed: [
           { "@type": "Country", name: "Bangladesh" },
           { "@type": "City", name: "Chittagong" },

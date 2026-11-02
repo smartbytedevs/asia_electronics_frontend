@@ -2,9 +2,8 @@
 
 import { motion } from "motion/react";
 import { PhoneIcon, WhatsappIcon } from "./icons";
+import { SITE_CONTACT, whatsappHref } from "@/lib/site-contact";
 
-const PHONE_NUMBER = "+8801972436209";
-const WHATSAPP_NUMBER = "8801972436209";
 const EASE = [0.22, 1, 0.36, 1];
 
 /**
@@ -18,12 +17,12 @@ const EASE = [0.22, 1, 0.36, 1];
  */
 export function ProductContactButtons({ productName, className = "", bare = false }) {
   const message = `Hello, I'm interested in ${productName}. Please provide more details.`;
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  const productWhatsappHref = whatsappHref(message);
 
   const links = (
     <>
       <motion.a
-        href={`tel:${PHONE_NUMBER}`}
+        href={`tel:${SITE_CONTACT.phoneTel}`}
         aria-label={`Call Asia Electronics about ${productName}`}
         whileHover={{ y: -2 }}
         whileTap={{ scale: 0.98 }}
@@ -34,7 +33,7 @@ export function ProductContactButtons({ productName, className = "", bare = fals
         Call now
       </motion.a>
       <motion.a
-        href={whatsappHref}
+        href={productWhatsappHref}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`Chat on WhatsApp about ${productName}`}

@@ -9,11 +9,12 @@ import {
   WhatsappIcon,
 } from "./icons";
 import { PAYMENT_METHODS } from "../lib/home-content";
+import { SITE_ADDRESS_LINES, SITE_CONTACT, whatsappHref } from "@/lib/site-contact";
 
 const SOCIAL_LINKS = [
   {
     label: "WhatsApp",
-    href: "https://wa.me/8809600123456",
+    href: whatsappHref("Hello, I'm interested in your products."),
     icon: WhatsappIcon,
   },
 ];
@@ -131,27 +132,29 @@ export function StoreFooter({ categories }) {
               <li className="flex items-start gap-3">
                 <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-electric" />
                 <span className="leading-relaxed">
-                  Level 4, Multiplan Center,
-                  <br />
-                  New Elephant Road, Dhaka 1205
+                  {SITE_ADDRESS_LINES.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <PhoneIcon className="h-4 w-4 shrink-0 text-electric" />
                 <a
-                  href="tel:+8809600123456"
+                  href={`tel:${SITE_CONTACT.phoneTel}`}
                   className="transition-colors hover:text-white"
                 >
-                  +880 9600 123 456
+                  {SITE_CONTACT.phoneDisplay}
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <MailIcon className="h-4 w-4 shrink-0 text-electric" />
                 <a
-                  href="mailto:support@asiaelectronics.com.bd"
+                  href={`mailto:${SITE_CONTACT.email}`}
                   className="break-all transition-colors hover:text-white"
                 >
-                  support@asiaelectronics.com.bd
+                  {SITE_CONTACT.email}
                 </a>
               </li>
             </ul>

@@ -3,6 +3,7 @@ import { CartProvider } from "./_components/cart-context";
 import { WishlistProvider } from "./_components/wishlist-context";
 import { WishlistDrawer } from "./_components/wishlist-drawer";
 import { PageTransition } from "@/components/page-transition";
+import { FloatingContact } from "./_components/floating-contact";
 import { StoreFooter } from "./_components/store-footer";
 import { StoreHeader } from "./_components/store-header";
 import { fetchCategories } from "./lib/catalog-data";
@@ -26,6 +27,7 @@ export default async function StorefrontLayout({ children }) {
             <PageTransition>{children}</PageTransition>
           </main>
           <StoreFooter categories={categories} />
+          <FloatingContact />
           <CartDrawer />
           <WishlistDrawer />
         </div>

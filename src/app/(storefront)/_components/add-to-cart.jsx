@@ -322,7 +322,7 @@ export function ProductPurchase({ product }) {
   } else if (hasActiveVariants && (!availabilityMap || !selectedAvailability)) {
     status = (
       <p className="mt-3 text-xs text-muted">
-        Ships from Dhaka within 1–2 working days.
+        Ships from Chittagong within 1–2 working days.
       </p>
     );
   } else if (isOutOfStock) {
