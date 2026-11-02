@@ -37,8 +37,10 @@ const PROOF_MEDIA_RULES = {
 const PROOF_MAX_BYTES = 2 * 1024 * 1024;
 export const PROOF_ACCEPT = Object.keys(PROOF_MEDIA_RULES).join(",");
 
+// 16px on phones (text-base) prevents iOS Safari from zooming the whole page
+// when a field is focused; it drops back to 14px from the `sm` breakpoint up.
 const INPUT_CLASSES =
-  "mt-1.5 w-full rounded-xl border border-sand bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-mocha/40 focus:outline-none focus:ring-2 focus:ring-gold/40";
+  "mt-1.5 w-full rounded-xl border border-sand bg-white px-3 py-2.5 text-base text-ink placeholder:text-muted focus:border-mocha/40 focus:outline-none focus:ring-2 focus:ring-gold/40 sm:px-4 sm:text-sm";
 
 function proofExtension(name) {
   if (typeof name !== "string") {
@@ -701,7 +703,7 @@ export function PaymentSubmissionPanel({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: EASE }}
-      className="rounded-3xl border border-gold-soft/50 bg-white/80 p-6 shadow-sm shadow-ink/5 sm:p-8"
+      className="rounded-3xl border border-gold-soft/50 bg-white/80 p-5 shadow-sm shadow-ink/5 sm:p-8"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-soft/50 text-mocha-deep">

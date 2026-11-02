@@ -20,8 +20,10 @@ import {
 
 const EASE = [0.22, 1, 0.36, 1];
 
+// 16px on phones (text-base) prevents iOS Safari from zooming the whole page
+// when a field is focused; it drops back to 14px from the `sm` breakpoint up.
 const INPUT_CLASSES =
-  "mt-1.5 w-full rounded-xl border border-sand bg-white px-4 py-2.5 text-sm text-ink placeholder:text-muted focus:border-mocha/40 focus:outline-none focus:ring-2 focus:ring-gold/40";
+  "mt-1.5 w-full rounded-xl border border-sand bg-white px-3 py-2.5 text-base text-ink placeholder:text-muted focus:border-mocha/40 focus:outline-none focus:ring-2 focus:ring-gold/40 sm:px-4 sm:text-sm";
 
 // Mirrors the backend order.limits (ORDER_LIMITS) so the form never sends a
 // value the server would reject; the backend stays authoritative.
@@ -66,7 +68,7 @@ function Field({ id, label, className = "", ...props }) {
 
 function Section({ title, children }) {
   return (
-    <section className="rounded-3xl border border-gold-soft/50 bg-white/80 p-6 shadow-sm shadow-ink/5">
+    <section className="rounded-3xl border border-gold-soft/50 bg-white/80 p-4 shadow-sm shadow-ink/5 sm:p-6">
       <h2 className="font-display text-lg text-ink">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
@@ -75,9 +77,9 @@ function Section({ title, children }) {
 
 function CheckoutSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
       <div className="h-8 w-48 rounded bg-sand" />
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_360px]">
+      <div className="mt-6 grid gap-6 sm:mt-8 sm:gap-8 lg:mt-10 lg:grid-cols-[1fr_360px] lg:gap-10">
         <div className="space-y-6">
           <div className="h-72 animate-pulse rounded-2xl bg-sand/70" />
           <div className="h-48 animate-pulse rounded-2xl bg-sand/70" />
@@ -117,7 +119,7 @@ function OrderConfirmation({
   const effectiveMethod = needsManualPayment && manualMethod ? manualMethod : null;
 
   return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:py-16">
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:py-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -164,7 +166,7 @@ function OrderConfirmation({
             </div>
           </div>
 
-          <div className="mt-10 rounded-3xl border border-gold-soft/50 bg-white/80 p-6 shadow-sm shadow-ink/5 sm:p-8">
+          <div className="mt-8 rounded-3xl border border-gold-soft/50 bg-white/80 p-5 shadow-sm shadow-ink/5 sm:p-8">
             <h2 className="font-display text-xl text-ink">Order summary</h2>
             <ul className="mt-4 divide-y divide-sand">
               {items.map((item) => (
@@ -229,7 +231,7 @@ function OrderConfirmation({
             </div>
           ) : null}
 
-          <div className="mt-6 rounded-3xl border border-sand bg-white/60 p-6 text-sm leading-relaxed text-muted">
+          <div className="mt-6 rounded-3xl border border-sand bg-white/60 p-4 text-sm leading-relaxed text-muted sm:p-6">
             Keep your <span className="font-medium text-mocha-deep">order number</span> and{" "}
             <span className="font-medium text-mocha-deep">delivery phone</span> handy — you can
             look up your order status anytime.
@@ -472,7 +474,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:py-14">
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
         <EmptyState
           title="Your cart is empty"
           description="Add items to your cart before checking out."
@@ -484,12 +486,12 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
       <header>
         <p className="text-[0.64rem] font-semibold uppercase tracking-[0.3em] text-electric">
           Checkout
         </p>
-        <h1 className="mt-3 font-display text-4xl leading-tight text-ink">
+        <h1 className="mt-3 font-display text-3xl leading-tight text-ink sm:text-4xl">
           Complete your order
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted">
@@ -498,8 +500,8 @@ export default function CheckoutPage() {
         </p>
       </header>
 
-      <form onSubmit={handleSubmit} className="mt-10 grid gap-10 lg:grid-cols-[1fr_360px]">
-        <div className="min-w-0 space-y-6">
+      <form onSubmit={handleSubmit} className="mt-6 grid min-w-0 grid-cols-1 gap-6 sm:mt-8 sm:gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+        <div className="min-w-0 space-y-4 sm:space-y-6">
           <Section title="Delivery address">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
@@ -757,7 +759,7 @@ export default function CheckoutPage() {
         </div>
 
         <aside className="lg:sticky lg:top-32 lg:self-start">
-          <div className="rounded-3xl border border-gold-soft/50 bg-white/80 p-6 shadow-sm shadow-ink/5">
+          <div className="rounded-3xl border border-gold-soft/50 bg-white/80 p-4 shadow-sm shadow-ink/5 sm:p-6">
             <h2 className="font-display text-lg text-ink">Your order</h2>
             <ul className="mt-4 divide-y divide-sand">
               {items.map((item) => (
