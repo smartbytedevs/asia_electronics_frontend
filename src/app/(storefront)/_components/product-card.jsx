@@ -19,14 +19,13 @@ import { useWishlist } from "./wishlist-context";
 const EASE = [0.22, 1, 0.36, 1];
 
 /**
- * Storefront product card (client). Editorial product card — a large dominant
- * image with a quiet wishlist heart and NEW / SALE badges, followed by minimal
- * metadata (category eyebrow, serif name, price) and the purchase actions.
- * Cards are fixed-width and sit side-by-side inside a horizontal product row;
- * they never stack into a vertical list. On mobile each card is a dominant
- * ~82vw and the row snaps it to the center of the viewport; on desktop it
- * shrinks back to a 280px multiple-across row. The card keeps sharp square
- * corners — only buttons, badges and the size popover stay rounded.
+ * Storefront product grid card (client). A compact vertical card — contained
+ * product image on top, followed by brand, name, price/discount, wishlist and
+ * the purchase actions. Cards sit in the responsive grid from `ProductRow`:
+ * two per row on mobile, two/three on tablet and four on desktop. Cards keep
+ * a full-height flex column so rows stay aligned. Images use `object-contain`
+ * so the full product is always visible, never cropped. Only buttons, badges
+ * and the size popover stay rounded.
  *
  * All stock and purchase logic is unchanged and shared with the product detail
  * page via `useProductAvailability`:
@@ -167,34 +166,34 @@ export function ProductCard({ product, className = "" }) {
   return (
     <motion.article
       whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.985 }}
-      transition={{ duration: 0.35, ease: EASE }}
+      whileTap={{ scale: 0.99 }}
+      transition={{ duration: 0.3, ease: EASE }}
       data-product-card
       className={
-        "group relative flex h-full w-[82vw] max-w-[420px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-ink/[0.08] bg-white shadow-[0_1px_2px_rgba(8,20,46,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-electric/30 hover:shadow-[0_26px_54px_-32px_rgba(8,20,46,0.45)] sm:w-[280px] sm:max-w-none " +
+        "group relative flex h-full flex-col rounded-2xl border border-ink/[0.08] bg-white shadow-[0_1px_2px_rgba(8,20,46,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-electric/30 hover:shadow-[0_22px_48px_-34px_rgba(8,20,46,0.45)] " +
         className
       }
     >
       <Link
         href={`/products/${product.slug}`}
-        className="relative block aspect-square overflow-hidden bg-gradient-to-br from-sand via-white to-sand"
+        className="relative block aspect-square overflow-hidden rounded-t-2xl bg-gradient-to-br from-sand via-white to-sand"
         aria-label={product.name}
       >
         <ProductImage
           src={product.images?.[0]?.url}
           alt={product.images?.[0]?.alt || product.name}
-          sizes="(min-width: 1280px) 20vw, (min-width: 640px) 280px, 82vw"
-          imgClassName="h-full w-full object-contain object-center p-5 transition-transform duration-500 ease-out group-hover:scale-[1.06] sm:p-6"
+          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+          imgClassName="h-full w-full object-contain object-center p-3 transition-transform duration-500 ease-out group-hover:scale-[1.05] sm:p-5"
         />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(31,107,255,0.1),transparent_55%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5">
+        <div className="absolute left-2 top-2 flex flex-col items-start gap-1 sm:left-2.5 sm:top-2.5 sm:gap-1.5">
           {product.newArrival ? (
-            <span className="rounded-full bg-ink px-2.5 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-white">
+            <span className="rounded-full bg-ink px-2 py-0.5 text-[0.5rem] font-semibold uppercase tracking-[0.14em] text-white sm:px-2.5 sm:py-1 sm:text-[0.58rem] sm:tracking-[0.16em]">
               New
             </span>
           ) : null}
           {showDiscountBadge ? (
-            <span className="rounded-full bg-electric px-2.5 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-white">
+            <span className="rounded-full bg-electric px-2 py-0.5 text-[0.5rem] font-semibold uppercase tracking-[0.14em] text-white sm:px-2.5 sm:py-1 sm:text-[0.58rem] sm:tracking-[0.16em]">
               Sale
             </span>
           ) : null}
@@ -212,41 +211,42 @@ export function ProductCard({ product, className = "" }) {
             : `Add ${product.name} to wishlist`
         }
         onClick={() => toggle(product.id)}
-        className="absolute right-2.5 top-2.5 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ink/5 bg-white/90 text-ink shadow-sm shadow-ink/5 backdrop-blur-sm transition-colors hover:bg-white hover:text-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40"
+        className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-ink/[0.06] bg-white/90 text-ink shadow-sm shadow-ink/5 backdrop-blur-sm transition-colors hover:bg-white hover:text-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 sm:right-2.5 sm:top-2.5 sm:h-9 sm:w-9"
       >
         <HeartIcon
           className={"h-4 w-4 transition-colors " + (saved ? "fill-current text-electric" : "")}
         />
       </motion.button>
 
-      <div className="flex flex-1 flex-col px-3.5 pb-3.5 pt-3.5 sm:px-4 sm:pb-4">
-        {product.category?.name ? (
-          <p className="text-[0.58rem] font-semibold uppercase tracking-[0.22em] text-electric">
-            {product.category.name}
+      <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5 sm:px-4 sm:pb-4 sm:pt-3.5">
+        {product.brand || product.category?.name ? (
+          <p className="line-clamp-1 text-[0.54rem] font-semibold uppercase tracking-[0.2em] text-electric sm:text-[0.6rem] sm:tracking-[0.22em]">
+            {product.brand || product.category.name}
           </p>
         ) : null}
         <Link
           href={`/products/${product.slug}`}
           title={product.name}
-          className="mt-1.5 line-clamp-2 text-[0.95rem] font-semibold leading-snug text-ink transition-colors hover:text-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40"
+          className="mt-1 line-clamp-2 min-h-[2.4em] text-[0.8rem] font-semibold leading-snug text-ink transition-colors hover:text-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 sm:mt-1.5 sm:text-[0.95rem]"
         >
           {product.name}
         </Link>
-        <div className="mt-2">
-          <Price product={product} className="text-[0.95rem]" />
+        <div className="mt-1.5 sm:mt-2">
+          <Price product={product} className="text-sm sm:text-[0.95rem]" />
         </div>
-        <div className="mt-3.5 flex flex-1 items-end sm:mt-4">
+
+        <div className="mt-auto pt-2.5 sm:pt-3.5">
           {!isAvailable ? (
-            <p className="w-full rounded-full border border-ink/10 bg-sand py-2.5 text-center text-xs font-medium text-muted">
+            <p className="flex w-full items-center justify-center rounded-full border border-ink/10 bg-sand px-3 py-2 text-xs font-medium text-muted">
               Unavailable
             </p>
           ) : isFullyOutOfStock ? (
-            <p className="w-full rounded-full border border-ink/10 bg-sand py-2.5 text-center text-xs font-medium text-muted">
+            <p className="flex w-full items-center justify-center rounded-full border border-ink/10 bg-sand px-3 py-2 text-xs font-medium text-muted">
               Out of stock
             </p>
           ) : hasSizeChoice ? (
-            <div className="relative w-full">
-              <div ref={toggleRef} className="flex flex-col gap-2">
+            <div className="relative">
+              <div ref={toggleRef} className="flex flex-col gap-1.5">
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   transition={{ duration: 0.2, ease: EASE }}
@@ -254,19 +254,17 @@ export function ProductCard({ product, className = "" }) {
                   aria-haspopup="listbox"
                   aria-expanded={sizePopoverOpen}
                   onClick={() => togglePicker("add")}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50"
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-ink px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
                 >
-                  <span className="inline-flex items-center gap-2">
-                    <BagIcon className="h-4 w-4" />
-                    <span className="inline-flex items-center gap-1.5">
-                      Add to cart
-                      <ChevronDownIcon
-                        className={
-                          "h-3.5 w-3.5 opacity-70 transition-transform duration-200 " +
-                          (sizePopoverOpen ? "rotate-180" : "")
-                        }
-                      />
-                    </span>
+                  <BagIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="inline-flex items-center gap-1">
+                    Add to cart
+                    <ChevronDownIcon
+                      className={
+                        "h-3 w-3 opacity-70 transition-transform duration-200 sm:h-3.5 sm:w-3.5 " +
+                        (sizePopoverOpen ? "rotate-180" : "")
+                      }
+                    />
                   </span>
                 </motion.button>
                 <motion.button
@@ -274,7 +272,7 @@ export function ProductCard({ product, className = "" }) {
                   transition={{ duration: 0.2, ease: EASE }}
                   type="button"
                   onClick={() => togglePicker("order")}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-electric/40 hover:bg-electric-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-electric/40 hover:bg-electric-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Buy now
                 </motion.button>
@@ -290,7 +288,7 @@ export function ProductCard({ product, className = "" }) {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.96 }}
                     transition={{ duration: 0.18, ease: EASE }}
-                    className="absolute bottom-full left-0 right-0 z-50 mb-2 origin-bottom rounded-2xl border border-ink/10 bg-white p-2 shadow-xl shadow-ink/10"
+                    className="absolute bottom-full left-0 right-0 z-50 mb-2 origin-bottom rounded-xl border border-ink/10 bg-white p-2 shadow-xl shadow-ink/10"
                   >
                     <p className="px-2 pb-1.5 pt-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-muted">
                       Choose an option
@@ -335,7 +333,7 @@ export function ProductCard({ product, className = "" }) {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="flex w-full flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <motion.div
                 whileTap={{ scale: 0.96 }}
                 transition={{ duration: 0.2, ease: EASE }}
@@ -345,12 +343,10 @@ export function ProductCard({ product, className = "" }) {
                   product={product}
                   variantId={directVariant?.id ?? null}
                   disabled={controlsDisabled}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50"
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-ink px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-electric focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
                 >
-                  <span className="inline-flex items-center gap-2">
-                    <BagIcon className="h-4 w-4" />
-                    Add to cart
-                  </span>
+                  <BagIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  Add to cart
                 </AddToCartButton>
               </motion.div>
               <motion.div
@@ -362,7 +358,7 @@ export function ProductCard({ product, className = "" }) {
                   product={product}
                   variantId={directVariant?.id ?? null}
                   disabled={controlsDisabled}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-electric/40 hover:bg-electric-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-electric/40 hover:bg-electric-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 sm:px-4 sm:py-2.5 sm:text-sm"
                 >
                   Buy now
                 </OrderNowButton>

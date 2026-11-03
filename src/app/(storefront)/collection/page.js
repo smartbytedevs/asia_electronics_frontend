@@ -55,8 +55,9 @@ export const metadata = {
 
 /**
  * Groups the flat product list by category. Each category becomes one
- * horizontal product row — products from different categories are never mixed
- * inside the same row. Uncategorized products get their own trailing group.
+ * responsive product grid — products from different categories are never
+ * mixed inside the same grid. Uncategorized products get their own trailing
+ * group.
  */
 function groupByCategory(products) {
   const groups = new Map();
