@@ -12,6 +12,13 @@ import { useCart } from "../_components/cart-context";
 import { EmptyState } from "../_components/empty-state";
 import { formatMinorUnits, formatDate } from "@/lib/utils";
 import {
+  DISTRICTS,
+  getDefaultPostOffice,
+  getPostOffices,
+  isValidPostalCode,
+  postOfficeKey,
+} from "@/lib/bangladesh-postal-codes";
+import {
   MANUAL_ORDER_ENUMS,
   ManualPaymentSection,
   PaymentSubmissionPanel,
@@ -55,15 +62,53 @@ function createIdempotencyKey() {
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function Field({ id, label, className = "", ...props }) {
+function Field({
+  id,
+  label,
+  className = "",
+  hint,
+  hintClassName = "text-muted",
+  ...props
+}) {
   return (
     <div className={className}>
       <label htmlFor={id} className="block text-sm font-medium text-ink">
         {label}
       </label>
       <input id={id} {...props} className={INPUT_CLASSES} />
+      {hint ? (
+        <p className={`mt-1.5 text-xs ${hintClassName}`}>{hint}</p>
+      ) : null}
     </div>
   );
+}
+
+function SelectField({ id, label, className = "", children, ...props }) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className="block text-sm font-medium text-ink">
+        {label}
+      </label>
+      <select id={id} {...props} className={INPUT_CLASSES}>
+        {children}
+      </select>
+    </div>
+  );
+}
+
+// Post offices arrive sorted by thana, so consecutive entries can be grouped
+// into <optgroup>s without another lookup table.
+function groupByThana(offices) {
+  const groups = [];
+  for (const office of offices) {
+    const last = groups[groups.length - 1];
+    if (last && last.thana === office.thana) {
+      last.offices.push(office);
+    } else {
+      groups.push({ thana: office.thana, offices: [office] });
+    }
+  }
+  return groups;
 }
 
 function Section({ title, children }) {
@@ -302,6 +347,7 @@ export default function CheckoutPage() {
     city: "",
     area: "",
     district: "",
+    postOffice: "",
     postalCode: "",
     email: "",
     notes: "",
@@ -348,8 +394,48 @@ export default function CheckoutPage() {
   const deliveryFeeMinorUnits = selectedZone ? selectedZone.feeMinorUnits : 0;
   const estimatedTotalMinorUnits = subtotalMinorUnits + deliveryFeeMinorUnits;
 
+  const districtPostOffices = form.district ? getPostOffices(form.district) : [];
+  const districtThanaGroups = groupByThana(districtPostOffices);
+  const showPostOfficePicker = districtPostOffices.length > 1;
+  const hasValidPostalCode = isValidPostalCode(form.postalCode);
+  const postalCodeHint = !form.postalCode.trim()
+    ? "Four digits — picking a district fills this in."
+    : hasValidPostalCode
+      ? "Filled from your district and post office. You can edit it if needed."
+      : "Bangladesh postal codes are 4 digits. Please double-check this one.";
+
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  // Choosing a district resets the postal code to that district's main post
+  // office; the customer can still pick another post office or edit the code.
+  function selectDistrict(district) {
+    setForm((prev) => {
+      const office = district ? getDefaultPostOffice(district) : null;
+      return {
+        ...prev,
+        district,
+        postOffice: postOfficeKey(office),
+        postalCode: office?.code ?? "",
+      };
+    });
+  }
+
+  function selectPostOffice(key) {
+    setForm((prev) => {
+      const office = getPostOffices(prev.district).find(
+        (item) => postOfficeKey(item) === key
+      );
+      if (!office) {
+        return { ...prev, postOffice: key };
+      }
+      return {
+        ...prev,
+        postOffice: key,
+        postalCode: office.code,
+      };
+    });
   }
 
   function selectManualMethod(method) {
@@ -559,7 +645,7 @@ export default function CheckoutPage() {
               />
               <Field
                 id="area"
-                label="Area"
+                label="Area / thana"
                 type="text"
                 placeholder="Area / thana"
                 maxLength={FIELD_LIMITS.area}
@@ -567,24 +653,57 @@ export default function CheckoutPage() {
                 value={form.area}
                 onChange={(event) => updateField("area", event.target.value)}
               />
-              <Field
+              <SelectField
                 id="district"
                 label="District"
-                type="text"
-                placeholder="District"
-                maxLength={FIELD_LIMITS.district}
                 required
                 value={form.district}
-                onChange={(event) => updateField("district", event.target.value)}
-              />
+                onChange={(event) => selectDistrict(event.target.value)}
+              >
+                <option value="">Select district</option>
+                {DISTRICTS.map((district) => (
+                  <option key={district} value={district}>
+                    {district}
+                  </option>
+                ))}
+              </SelectField>
+              {showPostOfficePicker ? (
+                <SelectField
+                  id="postOffice"
+                  label="Post office / area"
+                  value={form.postOffice}
+                  onChange={(event) => selectPostOffice(event.target.value)}
+                >
+                  <option value="">Select post office</option>
+                  {districtThanaGroups.map((group) => (
+                    <optgroup key={group.thana} label={group.thana}>
+                      {group.offices.map((office) => (
+                        <option
+                          key={postOfficeKey(office)}
+                          value={postOfficeKey(office)}
+                        >
+                          {office.name} ({office.code})
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </SelectField>
+              ) : null}
               <Field
                 id="postalCode"
                 label="Postal code"
                 type="text"
+                inputMode="numeric"
                 autoComplete="postal-code"
                 placeholder="Postal code"
                 maxLength={FIELD_LIMITS.postalCode}
                 required
+                hint={postalCodeHint}
+                hintClassName={
+                  hasValidPostalCode || !form.postalCode.trim()
+                    ? "text-muted"
+                    : "text-[#b3412f]"
+                }
                 value={form.postalCode}
                 onChange={(event) => updateField("postalCode", event.target.value)}
               />
