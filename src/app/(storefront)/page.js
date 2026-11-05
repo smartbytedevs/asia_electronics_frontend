@@ -101,81 +101,80 @@ function TrustStrip() {
   );
 }
 
-function CuratedCategorySlider() {
-  return (
-    <div className="relative">
-      <div className="flex gap-3 overflow-x-auto pb-4 pt-1 no-scrollbar sm:gap-4 scroll-smooth">
-        {CURATED_CATEGORIES.map((category) => (
-          <Link
-            key={category.key}
-            href="/collection"
-            className="group relative flex w-[140px] shrink-0 flex-col justify-between overflow-hidden rounded-2xl border border-ink/[0.08] bg-white p-4 transition-all duration-300 hover:-translate-y-1 hover:border-electric/40 hover:shadow-[0_24px_48px_-30px_rgba(8,20,46,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 sm:w-[160px]"
-          >
-            <span
-              aria-hidden="true"
-              className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-electric-soft/70 transition-transform duration-500 group-hover:scale-125"
-            />
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-ink text-white transition-colors duration-300 group-hover:bg-electric">
-              <category.icon className="h-5 w-5" />
-            </span>
-            <span className="relative mt-5 block">
-              <span className="block text-sm font-semibold leading-tight text-ink line-clamp-1">
-                {category.name}
-              </span>
-              <span className="mt-1 block text-[11px] leading-snug text-muted line-clamp-1">
-                {category.blurb}
-              </span>
-              <span className="mt-3 inline-flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-electric">
-                Shop
-                <ArrowRightIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-              </span>
-            </span>
-          </Link>
-        ))}
+function CategoryThumb({ image, name, Icon }) {
+  if (image) {
+    return (
+      <div className="relative aspect-square w-full max-w-[68px] overflow-hidden rounded-xl bg-sand">
+        <ProductImage
+          src={image}
+          alt={name}
+          sizes="68px"
+          imgClassName="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+        />
       </div>
+    );
+  }
+
+  return (
+    <div className="flex aspect-square w-full max-w-[68px] items-center justify-center rounded-xl bg-sand text-electric transition-colors duration-300 group-hover:bg-electric-soft">
+      {Icon ? (
+        <Icon aria-hidden="true" className="h-6 w-6" />
+      ) : (
+        <span className="text-[0.62rem] font-extrabold uppercase tracking-[0.24em] text-ink/35">
+          AE
+        </span>
+      )}
     </div>
   );
 }
 
-function LiveCategorySlider({ categories }) {
+function CategoryGrid({ items }) {
   return (
     <div className="relative">
-      <div className="flex gap-3 overflow-x-auto pb-4 pt-1 no-scrollbar sm:gap-4 scroll-smooth">
-        {categories.slice(0, 10).map((category) => {
-          const Icon = iconForCategory(category);
-          return (
+      <ul className="-mx-4 grid snap-x snap-mandatory grid-flow-col grid-rows-2 gap-2 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 [grid-auto-columns:96px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:gap-3 sm:px-0 sm:pb-0 sm:[grid-auto-columns:112px] sm:[justify-content:safe_center]">
+        {items.map((item) => (
+          <li key={item.key} className="snap-start">
             <Link
-              key={category.id}
-              href={`/categories/${category.slug}`}
-              className="group relative flex aspect-[4/3] w-[160px] shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-ink p-4 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/50 sm:w-[180px]"
+              href={item.href}
+              title={item.name}
+              className="group flex h-full w-full flex-col items-center gap-2 rounded-2xl border border-ink/[0.07] bg-white p-2 text-center shadow-[0_12px_30px_-28px_rgba(8,20,46,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-electric/30 hover:shadow-[0_18px_36px_-26px_rgba(8,20,46,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 sm:p-2.5"
             >
-              <div className="absolute inset-0">
-                <ProductImage
-                  src={category.image}
-                  alt={category.name}
-                  sizes="(min-width: 1024px) 25vw, 50vw"
-                  imgClassName="h-full w-full object-cover object-center opacity-60 transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <span
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-transparent"
-              />
-              <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white backdrop-blur-sm">
-                <Icon className="h-4 w-4" />
-              </span>
-              <span className="relative mt-3 block font-display text-base leading-tight line-clamp-1">
-                {category.name}
-              </span>
-              <span className="relative mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-white/70 transition-colors group-hover:text-electric">
-                Shop category
-                <ArrowRightIcon className="h-3.5 w-3.5" />
+              <CategoryThumb image={item.image} name={item.name} Icon={item.icon} />
+              <span className="block min-h-[2.75em] w-full line-clamp-2 text-xs font-medium leading-snug text-ink transition-colors group-hover:text-electric sm:text-[0.8rem]">
+                {item.name}
               </span>
             </Link>
-          );
-        })}
-      </div>
+          </li>
+        ))}
+      </ul>
     </div>
+  );
+}
+
+function LiveCategoryGrid({ categories }) {
+  return (
+    <CategoryGrid
+      items={categories.slice(0, 10).map((category) => ({
+        key: category.id,
+        href: `/categories/${category.slug}`,
+        name: category.name,
+        image: category.image,
+        icon: iconForCategory(category),
+      }))}
+    />
+  );
+}
+
+function CuratedCategoryGrid() {
+  return (
+    <CategoryGrid
+      items={CURATED_CATEGORIES.map((category) => ({
+        key: category.key,
+        href: "/collection",
+        name: category.name,
+        icon: category.icon,
+      }))}
+    />
   );
 }
 
@@ -504,9 +503,9 @@ export default async function HomePage() {
           actionLabel="All products"
         />
         {categories.length > 0 ? (
-          <LiveCategorySlider categories={categories} />
+          <LiveCategoryGrid categories={categories} />
         ) : (
-          <CuratedCategorySlider />
+          <CuratedCategoryGrid />
         )}
       </section>
 
