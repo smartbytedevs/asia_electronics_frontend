@@ -13,10 +13,55 @@ import {
 import { buildCartEntry, useCart } from "./cart-context";
 import { Price } from "./price";
 import { ProductImage } from "./product-image";
-import { BagIcon, ChevronDownIcon, HeartIcon } from "./icons";
+import { BagIcon, ChevronDownIcon, HeartIcon, StarIcon } from "./icons";
 import { useWishlist } from "./wishlist-context";
 
 const EASE = [0.22, 1, 0.36, 1];
+
+/**
+ * Compact five-star rating readout for catalog cards. The filled stars are
+ * rounded to the nearest whole star while the numeric average keeps its
+ * precision, so a 4.5 rating reads clearly without needing half-star icons.
+ */
+function ProductRating({ rating, count }) {
+  const rounded = Math.round(rating);
+  const label = `Rated ${rating.toFixed(1)} out of 5 from ${count} review${
+    count === 1 ? "" : "s"
+  }`;
+
+  return (
+    <div
+      role="img"
+      aria-label={label}
+      className="mt-1.5 flex items-center gap-1.5"
+    >
+      <span className="inline-flex items-center gap-0.5" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((value) => (
+          <StarIcon
+            key={value}
+            filled={value <= rounded}
+            className={
+              "h-3 w-3 sm:h-3.5 sm:w-3.5 " +
+              (value <= rounded ? "text-electric" : "text-ink/15")
+            }
+          />
+        ))}
+      </span>
+      <span
+        aria-hidden="true"
+        className="text-[0.62rem] font-semibold leading-none text-ink sm:text-xs"
+      >
+        {rating.toFixed(1)}
+      </span>
+      <span
+        aria-hidden="true"
+        className="text-[0.58rem] leading-none text-muted sm:text-[0.68rem]"
+      >
+        ({count})
+      </span>
+    </div>
+  );
+}
 
 /**
  * Storefront product grid card (client). A compact vertical card — contained
@@ -163,6 +208,14 @@ export function ProductCard({ product, className = "" }) {
     product.sellingPrice != null &&
     product.effectiveSellingPrice < product.sellingPrice;
 
+  const averageRating = Number(product.averageRating);
+  const reviewCount = Number(product.reviewCount ?? product.totalReviews);
+  const hasRating =
+    Number.isFinite(averageRating) &&
+    averageRating > 0 &&
+    Number.isFinite(reviewCount) &&
+    reviewCount > 0;
+
   return (
     <motion.article
       whileHover={{ y: -4 }}
@@ -231,6 +284,9 @@ export function ProductCard({ product, className = "" }) {
         >
           {product.name}
         </Link>
+        {hasRating ? (
+          <ProductRating rating={averageRating} count={reviewCount} />
+        ) : null}
         <div className="mt-1.5 sm:mt-2">
           <Price product={product} className="text-sm sm:text-[0.95rem]" />
         </div>

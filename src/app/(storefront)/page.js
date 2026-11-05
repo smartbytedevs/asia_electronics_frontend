@@ -64,8 +64,18 @@ export const metadata = {
 async function loadHomeData() {
   const [categories, featured, newArrivals, reviews] = await Promise.all([
     fetchCategories().catch(() => []),
-    fetchProducts({ featured: true, sort: "featured", limit: 8 }).catch(() => null),
-    fetchProducts({ newArrival: true, sort: "newest", limit: 8 }).catch(() => null),
+    fetchProducts({
+      featured: true,
+      sort: "featured",
+      limit: 8,
+      includeRatings: true,
+    }).catch(() => null),
+    fetchProducts({
+      newArrival: true,
+      sort: "newest",
+      limit: 8,
+      includeRatings: true,
+    }).catch(() => null),
     fetchRecentReviews({ limit: 6 }).catch(() => []),
   ]);
 
@@ -514,7 +524,8 @@ export default async function HomePage() {
           <ProductRow
             eyebrow="Best sellers"
             title="Popular right now"
-            actionHref="/collection?sort=featured"
+            bottomActionHref="/collection?sort=featured"
+            bottomActionLabel="See All"
           >
             {featured.map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -538,7 +549,8 @@ export default async function HomePage() {
           <ProductRow
             eyebrow="Just landed"
             title="New arrivals"
-            actionHref="/collection"
+            bottomActionHref="/collection"
+            bottomActionLabel="See All"
           >
             {newArrivals.map((product) => (
               <ProductCard key={product.id} product={product} />

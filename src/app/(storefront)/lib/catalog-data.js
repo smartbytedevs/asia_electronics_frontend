@@ -36,6 +36,7 @@ export async function fetchProducts({
   sort,
   page,
   limit,
+  includeRatings = false,
 } = {}) {
   const payload = await apiClient.get(
     `/products${query({
@@ -56,17 +57,31 @@ export async function fetchProducts({
   // existing detail endpoint so ProductCard receives the same variant data the
   // product-details page already uses. A failed detail fetch keeps the card
   // untouched (direct Add to Bag) rather than breaking the listing.
+  //
+  // The list also omits review aggregates, so callers that want ratings on
+  // their cards opt into `includeRatings` and receive the same average/count
+  // pair the product reviews endpoint exposes.
   const enriched = await Promise.all(
     products.map(async (product) => {
-      try {
-        const detail = await fetchProductById(product.id);
-        if (Array.isArray(detail?.variants)) {
-          return { ...product, variants: detail.variants };
-        }
-      } catch {
-        // Fall through: listing must survive an unavailable detail fetch.
+      const [detail, rating] = await Promise.all([
+        fetchProductById(product.id).catch(() => null),
+        includeRatings
+          ? fetchProductRatingSummary(product.id).catch(() => null)
+          : null,
+      ]);
+
+      let next = product;
+      if (Array.isArray(detail?.variants)) {
+        next = { ...next, variants: detail.variants };
       }
-      return product;
+      if (rating && rating.totalReviews > 0) {
+        next = {
+          ...next,
+          averageRating: rating.averageRating,
+          reviewCount: rating.totalReviews,
+        };
+      }
+      return next;
     })
   );
 
@@ -86,16 +101,31 @@ export async function fetchProductBySlug(slug) {
   return payload?.data?.product ?? null;
 }
 
+function normalizeReviewSummary(data) {
+  const summary = data?.summary ?? data ?? {};
+  const averageRating = Number(summary.averageRating);
+  const totalReviews = Number(summary.totalReviews ?? data?.pagination?.total ?? 0);
+
+  return {
+    averageRating:
+      Number.isFinite(averageRating) && averageRating > 0 ? averageRating : null,
+    totalReviews:
+      Number.isFinite(totalReviews) && totalReviews > 0 ? totalReviews : 0,
+    ratingBreakdown: summary.ratingBreakdown ?? {},
+  };
+}
+
+export async function fetchProductRatingSummary(productId) {
+  const payload = await apiClient.get(`/products/${encodeURIComponent(productId)}/reviews`);
+  return normalizeReviewSummary(payload?.data ?? {});
+}
+
 export async function fetchProductReviews(productId) {
   const payload = await apiClient.get(`/products/${encodeURIComponent(productId)}/reviews`);
   const data = payload?.data ?? {};
   return {
     reviews: Array.isArray(data.reviews) ? data.reviews : [],
-    summary: {
-      averageRating: data.averageRating ?? null,
-      totalReviews: data.totalReviews ?? 0,
-      ratingBreakdown: data.ratingBreakdown ?? {},
-    },
+    summary: normalizeReviewSummary(data),
   };
 }
 
