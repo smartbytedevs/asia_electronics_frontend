@@ -7,6 +7,7 @@ import { SortSelect } from "../_components/sort-select";
 import {
   fetchCategories,
   fetchProducts,
+  hasMoreProducts,
 } from "../lib/catalog-data";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -84,11 +85,33 @@ export default async function CollectionPage({ searchParams }) {
   const safeSort = SORTS.has(sort) ? sort : "newest";
 
   const [data, categories] = await Promise.all([
-    fetchProducts({ sort: safeSort, limit: 48 }).catch(() => null),
+    fetchProducts({
+      sort: safeSort,
+      limit: 48,
+      includeRatings: true,
+    }).catch(() => null),
     fetchCategories().catch(() => []),
   ]);
   const products = data?.products ?? [];
-  const sections = groupByCategory(products);
+  const catalogHasMore = hasMoreProducts(data?.pagination, products.length);
+  const sections = await Promise.all(
+    groupByCategory(products).map(async (section) => {
+      if (!section.slug || !catalogHasMore) {
+        return { ...section, hasMore: false };
+      }
+      const categoryData = await fetchProducts({
+        categoryId: section.key,
+        limit: 1,
+      }).catch(() => null);
+      const categoryTotal = Number(categoryData?.pagination?.total);
+      return {
+        ...section,
+        hasMore: Number.isFinite(categoryTotal)
+          ? categoryTotal > section.products.length
+          : true,
+      };
+    })
+  );
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -154,7 +177,12 @@ export default async function CollectionPage({ searchParams }) {
                 <ProductRow
                   eyebrow="Category"
                   title={section.name}
-                  actionHref={section.slug ? `/categories/${section.slug}` : undefined}
+                  bottomActionHref={
+                    section.hasMore && section.slug
+                      ? `/categories/${section.slug}`
+                      : undefined
+                  }
+                  bottomActionLabel="See All"
                 >
                   {section.products.map((product) => (
                     <ProductCard key={product.id} product={product} />

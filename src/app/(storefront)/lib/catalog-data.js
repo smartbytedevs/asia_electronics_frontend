@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api-client";
+import { normalizeReviewSummary } from "./review-summary";
 
 /**
  * Server-side catalog reads for the storefront (SSR). Uses the existing
@@ -101,18 +102,16 @@ export async function fetchProductBySlug(slug) {
   return payload?.data?.product ?? null;
 }
 
-function normalizeReviewSummary(data) {
-  const summary = data?.summary ?? data ?? {};
-  const averageRating = Number(summary.averageRating);
-  const totalReviews = Number(summary.totalReviews ?? data?.pagination?.total ?? 0);
-
-  return {
-    averageRating:
-      Number.isFinite(averageRating) && averageRating > 0 ? averageRating : null,
-    totalReviews:
-      Number.isFinite(totalReviews) && totalReviews > 0 ? totalReviews : 0,
-    ratingBreakdown: summary.ratingBreakdown ?? {},
-  };
+export function hasMoreProducts(pagination, shownCount) {
+  const total = Number(pagination?.total);
+  if (Number.isFinite(total) && total >= 0) {
+    return total > shownCount;
+  }
+  const totalPages = Number(pagination?.totalPages);
+  if (Number.isFinite(totalPages) && totalPages > 0) {
+    return totalPages > 1;
+  }
+  return false;
 }
 
 export async function fetchProductRatingSummary(productId) {

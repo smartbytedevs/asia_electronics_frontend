@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Price } from "./price";
 import { ProductImage } from "./product-image";
+import { ProductRating } from "./product-rating";
 import { ArrowRightIcon, CloseIcon, SearchIcon } from "./icons";
+import { normalizeReviewSummary } from "../lib/review-summary";
 
 const CATALOG_LIMIT = 100;
 const RESULT_LIMIT = 8;
@@ -16,6 +18,7 @@ const RESULT_LIMIT = 8;
  * product list is loaded once and filtered client-side by name.
  */
 let catalogCache = null;
+const ratingCache = new Map();
 
 async function fetchCatalog() {
   if (catalogCache) {
@@ -33,6 +36,23 @@ async function fetchCatalog() {
     : [];
   catalogCache = products;
   return products;
+}
+
+async function fetchProductRating(productId) {
+  if (ratingCache.has(productId)) {
+    return ratingCache.get(productId);
+  }
+  const response = await fetch(
+    `/api/backend/products/${encodeURIComponent(productId)}/reviews`,
+    { cache: "no-store" }
+  );
+  if (!response.ok) {
+    throw new Error("Ratings unavailable");
+  }
+  const payload = await response.json();
+  const summary = normalizeReviewSummary(payload?.data ?? {});
+  ratingCache.set(productId, summary);
+  return summary;
 }
 
 function SkeletonRow() {
@@ -60,6 +80,7 @@ export function SearchBar({ className = "", variant = "icon" }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | ready | error
   const [products, setProducts] = useState([]);
+  const [ratings, setRatings] = useState({});
   const inputRef = useRef(null);
   const triggerRef = useRef(null);
 
@@ -104,6 +125,53 @@ export function SearchBar({ className = "", variant = "icon" }) {
     );
     return { results: matches.slice(0, RESULT_LIMIT), matchingCount: matches.length };
   }, [products, normalizedQuery]);
+
+  const resultIds = useMemo(
+    () => results.map((product) => product.id),
+    [results]
+  );
+
+  useEffect(() => {
+    if (resultIds.length === 0) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const missing = resultIds.filter((id) => !ratings[id]);
+
+    if (missing.length === 0) {
+      return undefined;
+    }
+
+    Promise.all(
+      missing.map(async (id) => {
+        try {
+          return [id, await fetchProductRating(id)];
+        } catch {
+          return [id, null];
+        }
+      })
+    ).then((entries) => {
+      if (cancelled) {
+        return;
+      }
+      const valid = entries.filter(([, summary]) => summary);
+      if (valid.length === 0) {
+        return;
+      }
+      setRatings((prev) => {
+        const next = { ...prev };
+        for (const [id, summary] of valid) {
+          next[id] = summary;
+        }
+        return next;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resultIds, ratings]);
 
   return (
     <>
@@ -262,6 +330,13 @@ export function SearchBar({ className = "", variant = "icon" }) {
                                 <span className="block text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold">
                                   {product.category.name}
                                 </span>
+                              ) : null}
+                              {ratings[product.id] ? (
+                                <ProductRating
+                                  rating={ratings[product.id].averageRating}
+                                  count={ratings[product.id].totalReviews}
+                                  className="mt-1"
+                                />
                               ) : null}
                             </div>
                             <Price

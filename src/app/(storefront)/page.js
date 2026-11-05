@@ -15,7 +15,12 @@ import {
 } from "./_components/icons";
 import { SITE_URL, absoluteUrl } from "@/lib/seo";
 import { SITE_CONTACT } from "@/lib/site-contact";
-import { fetchCategories, fetchProducts, fetchRecentReviews } from "./lib/catalog-data";
+import {
+  fetchCategories,
+  fetchProducts,
+  fetchRecentReviews,
+  hasMoreProducts,
+} from "./lib/catalog-data";
 import {
   BESTSELLER_TRACKS,
   CURATED_CATEGORIES,
@@ -82,7 +87,9 @@ async function loadHomeData() {
   return {
     categories,
     featured: featured?.products ?? [],
+    featuredPagination: featured?.pagination ?? null,
     newArrivals: newArrivals?.products ?? [],
+    newArrivalsPagination: newArrivals?.pagination ?? null,
     reviews,
   };
 }
@@ -441,7 +448,23 @@ function NewsletterBand() {
 }
 
 export default async function HomePage() {
-  const { categories, featured, newArrivals, reviews } = await loadHomeData();
+  const {
+    categories,
+    featured,
+    featuredPagination,
+    newArrivals,
+    newArrivalsPagination,
+    reviews,
+  } = await loadHomeData();
+
+  const featuredHasMore = hasMoreProducts(
+    featuredPagination,
+    featured.length
+  );
+  const newArrivalsHasMore = hasMoreProducts(
+    newArrivalsPagination,
+    newArrivals.length
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -524,7 +547,9 @@ export default async function HomePage() {
           <ProductRow
             eyebrow="Best sellers"
             title="Popular right now"
-            bottomActionHref="/collection?sort=featured"
+            bottomActionHref={
+              featuredHasMore ? "/collection?sort=featured" : undefined
+            }
             bottomActionLabel="See All"
           >
             {featured.map((product) => (
@@ -549,7 +574,7 @@ export default async function HomePage() {
           <ProductRow
             eyebrow="Just landed"
             title="New arrivals"
-            bottomActionHref="/collection"
+            bottomActionHref={newArrivalsHasMore ? "/collection" : undefined}
             bottomActionLabel="See All"
           >
             {newArrivals.map((product) => (

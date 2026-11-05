@@ -8,6 +8,7 @@ import { SortSelect } from "../../_components/sort-select";
 import {
   fetchCategoryBySlug,
   fetchProducts,
+  hasMoreProducts,
 } from "../../lib/catalog-data";
 import { SITE_URL, absoluteUrl } from "@/lib/seo";
 
@@ -102,8 +103,10 @@ export default async function CategoryPage({ params, searchParams }) {
     categoryId: category.id,
     sort: safeSort,
     limit: 48,
+    includeRatings: true,
   }).catch(() => null);
   const products = data?.products ?? [];
+  const categoryHasMore = hasMoreProducts(data?.pagination, products.length);
 
   const collectionUrl = absoluteUrl(`/categories/${category.slug}`);
   const categoryDescription =
@@ -222,7 +225,12 @@ export default async function CategoryPage({ params, searchParams }) {
 
       <div className="mt-8">
         {products.length > 0 ? (
-          <ProductRow eyebrow="Category" title={category.name}>
+          <ProductRow
+            eyebrow="Category"
+            title={category.name}
+            bottomActionHref={categoryHasMore ? "/collection" : undefined}
+            bottomActionLabel="See All"
+          >
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

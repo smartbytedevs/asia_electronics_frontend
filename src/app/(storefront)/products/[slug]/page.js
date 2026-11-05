@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "../../_components/product-gallery";
 import { ProductPurchase } from "../../_components/add-to-cart";
+import { ProductCard } from "../../_components/product-card";
+import { ProductRow } from "../../_components/product-row";
 import { ReviewForm } from "../../_components/review-form";
 import { EmptyState } from "../../_components/empty-state";
 import { Reveal } from "../../_components/reveal";
@@ -11,6 +13,8 @@ import { SITE_URL, absoluteUrl, absoluteImageUrls } from "@/lib/seo";
 import {
   fetchProductBySlug,
   fetchProductReviews,
+  fetchProducts,
+  hasMoreProducts,
 } from "../../lib/catalog-data";
 
 export const dynamic = "force-dynamic";
@@ -371,7 +375,24 @@ export default async function ProductPage({ params }) {
     item: productUrl,
   });
 
-  const reviewData = await fetchProductReviews(product.id).catch(() => null);
+  const [reviewData, relatedData] = await Promise.all([
+    fetchProductReviews(product.id).catch(() => null),
+    product.category?.id
+      ? fetchProducts({
+          categoryId: product.category.id,
+          sort: "featured",
+          limit: 9,
+          includeRatings: true,
+        }).catch(() => null)
+      : Promise.resolve(null),
+  ]);
+  const relatedProducts = (relatedData?.products ?? [])
+    .filter((related) => related.id !== product.id)
+    .slice(0, 8);
+  const relatedHasMore = hasMoreProducts(
+    relatedData?.pagination,
+    relatedProducts.length + 1
+  );
   const averageRating = Number(reviewData?.summary?.averageRating);
   const totalReviews = Number(reviewData?.summary?.totalReviews);
   const aggregateRating =
@@ -514,6 +535,27 @@ export default async function ProductPage({ params }) {
           ) : null}
         </div>
       </div>
+
+      {relatedProducts.length > 0 ? (
+        <Reveal y={24}>
+          <div className="mt-16">
+            <ProductRow
+              eyebrow="More to explore"
+              title="Related products"
+              bottomActionHref={
+                relatedHasMore && product.category?.slug
+                  ? `/categories/${product.category.slug}`
+                  : undefined
+              }
+              bottomActionLabel="See All"
+            >
+              {relatedProducts.map((related) => (
+                <ProductCard key={related.id} product={related} />
+              ))}
+            </ProductRow>
+          </div>
+        </Reveal>
+      ) : null}
 
       <Reveal y={24}>
         <ReviewsSection productId={product.id} slug={product.slug} />
