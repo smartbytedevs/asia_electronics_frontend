@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ProductCard } from "./_components/product-card";
 import { ProductImage } from "./_components/product-image";
@@ -17,6 +18,7 @@ import { SITE_URL, absoluteUrl } from "@/lib/seo";
 import { SITE_CONTACT } from "@/lib/site-contact";
 import {
   fetchCategories,
+  fetchHomeNewArrivals,
   fetchProducts,
   fetchRecentReviews,
   hasMoreProducts,
@@ -66,32 +68,81 @@ export const metadata = {
   },
 };
 
-async function loadHomeData() {
-  const [categories, featured, newArrivals, reviews] = await Promise.all([
-    fetchCategories().catch(() => []),
-    fetchProducts({
-      featured: true,
-      sort: "featured",
-      limit: 8,
-      includeRatings: true,
-    }).catch(() => null),
-    fetchProducts({
-      newArrival: true,
-      sort: "newest",
-      limit: 8,
-      includeRatings: true,
-    }).catch(() => null),
-    fetchRecentReviews({ limit: 6 }).catch(() => []),
-  ]);
+async function HomeCategories() {
+  const categories = await fetchCategories();
+  return categories.length > 0 ? (
+    <LiveCategoryGrid categories={categories} />
+  ) : (
+    <CuratedCategoryGrid />
+  );
+}
 
-  return {
-    categories,
-    featured: featured?.products ?? [],
-    featuredPagination: featured?.pagination ?? null,
-    newArrivals: newArrivals?.products ?? [],
-    newArrivalsPagination: newArrivals?.pagination ?? null,
-    reviews,
-  };
+async function FeaturedProductsSection() {
+  const featured = await fetchProducts({
+    featured: true,
+    sort: "featured",
+    limit: 8,
+    includeRatings: true,
+  });
+  const products = featured?.products ?? [];
+  const hasMore = hasMoreProducts(featured?.pagination, products.length);
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:pb-16">
+      {products.length > 0 ? (
+        <ProductRow
+          eyebrow="Best sellers"
+          title="Popular right now"
+          bottomActionHref={hasMore ? "/collection?sort=featured" : undefined}
+          bottomActionLabel="See All"
+        >
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </ProductRow>
+      ) : (
+        <>
+          <SectionHeading
+            eyebrow="Best sellers"
+            title="Popular right now"
+            actionHref="/collection"
+            actionLabel="Shop all"
+          />
+          <BestsellerTracks />
+        </>
+      )}
+    </section>
+  );
+}
+
+async function NewArrivalsSection() {
+  const newArrivals = await fetchHomeNewArrivals();
+  const products = newArrivals?.products ?? [];
+  const hasMore = hasMoreProducts(newArrivals?.pagination, products.length);
+
+  if (products.length === 0) {
+    return <EditorialPromos />;
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:pb-16">
+      <ProductRow
+        eyebrow="Just landed"
+        title="New arrivals"
+        bottomActionHref={hasMore ? "/collection" : undefined}
+        bottomActionLabel="See All"
+      >
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </ProductRow>
+    </section>
+  );
+}
+
+async function HomeReviews() {
+  const reviews = await fetchRecentReviews({ limit: 6 }).catch(() => []);
+  return reviews.length > 0 ? <ReviewsSection reviews={reviews} /> : null;
 }
 
 function TrustStrip() {
@@ -447,25 +498,7 @@ function NewsletterBand() {
   );
 }
 
-export default async function HomePage() {
-  const {
-    categories,
-    featured,
-    featuredPagination,
-    newArrivals,
-    newArrivalsPagination,
-    reviews,
-  } = await loadHomeData();
-
-  const featuredHasMore = hasMoreProducts(
-    featuredPagination,
-    featured.length
-  );
-  const newArrivalsHasMore = hasMoreProducts(
-    newArrivalsPagination,
-    newArrivals.length
-  );
-
+export default function HomePage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -535,29 +568,14 @@ export default async function HomePage() {
           actionHref="/collection"
           actionLabel="All products"
         />
-        {categories.length > 0 ? (
-          <LiveCategoryGrid categories={categories} />
-        ) : (
-          <CuratedCategoryGrid />
-        )}
+        <Suspense fallback={<CuratedCategoryGrid />}>
+          <HomeCategories />
+        </Suspense>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:pb-16">
-        {featured.length > 0 ? (
-          <ProductRow
-            eyebrow="Best sellers"
-            title="Popular right now"
-            bottomActionHref={
-              featuredHasMore ? "/collection?sort=featured" : undefined
-            }
-            bottomActionLabel="See All"
-          >
-            {featured.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </ProductRow>
-        ) : (
-          <>
+      <Suspense
+        fallback={
+          <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:pb-16">
             <SectionHeading
               eyebrow="Best sellers"
               title="Popular right now"
@@ -565,28 +583,19 @@ export default async function HomePage() {
               actionLabel="Shop all"
             />
             <BestsellerTracks />
-          </>
-        )}
-      </section>
+          </section>
+        }
+      >
+        <FeaturedProductsSection />
+      </Suspense>
 
-      {newArrivals.length > 0 ? (
-        <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:pb-16">
-          <ProductRow
-            eyebrow="Just landed"
-            title="New arrivals"
-            bottomActionHref={newArrivalsHasMore ? "/collection" : undefined}
-            bottomActionLabel="See All"
-          >
-            {newArrivals.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </ProductRow>
-        </section>
-      ) : (
-        <EditorialPromos />
-      )}
+      <Suspense fallback={<EditorialPromos />}>
+        <NewArrivalsSection />
+      </Suspense>
 
-      {reviews.length > 0 ? <ReviewsSection reviews={reviews} /> : null}
+      <Suspense fallback={null}>
+        <HomeReviews />
+      </Suspense>
     </>
   );
 }

@@ -137,11 +137,14 @@ export function buildSizeOptions(variants) {
  * `availability.map` maps `variantId -> { isOutOfStock, availableQuantity, … }`
  * and `availability.product` carries the product-level flags.
  */
-export function useProductAvailability(productId) {
+export function useProductAvailability(productId, { enabled = true } = {}) {
   const [attempt, setAttempt] = useState(0);
   const [availability, setAvailability] = useState({ status: "loading" });
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     let cancelled = false;
     getProductAvailability(productId).then((res) => {
       if (cancelled) {
@@ -166,7 +169,7 @@ export function useProductAvailability(productId) {
     return () => {
       cancelled = true;
     };
-  }, [productId, attempt]);
+  }, [productId, attempt, enabled]);
 
   const retry = useCallback(() => {
     setAvailability({ status: "loading" });

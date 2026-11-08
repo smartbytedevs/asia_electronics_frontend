@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { getBackendAccessToken } from "@/lib/backend-auth";
+import { HEADER_NAME, resolveRequestId } from "@/lib/request-id";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +11,12 @@ const AUTH_FAILED_PAYLOAD = {
   error: { code: "AUTH_REQUIRED" },
 };
 
+const AUTH_UNAVAILABLE_PAYLOAD = {
+  success: false,
+  message: "Authentication is temporarily unavailable. Please try again shortly.",
+  error: { code: "AUTH_UNAVAILABLE" },
+};
+
 const BACKEND_UNAVAILABLE_PAYLOAD = {
   success: false,
   message: "The backend is currently unavailable. Please try again later.",
@@ -17,6 +24,22 @@ const BACKEND_UNAVAILABLE_PAYLOAD = {
 };
 
 const FORWARDED_HEADERS = new Set(["idempotency-key", "x-guest-id"]);
+
+function jsonResponse(payload, { status, requestId, retryAfter } = {}) {
+  const headers = {
+    "Cache-Control": "no-store",
+    "X-Request-Id": requestId,
+  };
+  if (retryAfter) {
+    headers["Retry-After"] = String(retryAfter);
+  }
+  return Response.json(payload, { status, headers });
+}
+
+function hasSessionCookie(request) {
+  const cookie = request.headers.get("cookie") || "";
+  return /(?:^|;\s*)(?:__Secure-)?better-auth\.session_token=/.test(cookie);
+}
 
 /**
  * Public read endpoints the backend serves without a token. When the session
@@ -31,6 +54,7 @@ const PUBLIC_GET_PATHS = [
   /^\/categories\/[^/]+$/,
   /^\/categories\/slug\/[^/]+$/,
   /^\/products$/,
+  /^\/products\/ratings\/summary$/,
   /^\/products\/[^/]+$/,
   /^\/products\/slug\/[^/]+$/,
   /^\/products\/[^/]+\/reviews$/,
@@ -66,20 +90,33 @@ async function handle(request, { params }) {
   const { path } = await params;
   const pathname = `/${path.join("/")}`;
   const guestIdHeader = request.headers.get("x-guest-id")?.trim();
+  const requestId = resolveRequestId(request.headers.get(HEADER_NAME));
+  const publicGet = isPublicGet(pathname, request.method);
 
   let token;
-  try {
-    token = await getBackendAccessToken({ headers: request.headers });
-  } catch {
-    // No session. Guest-capable backend routes (cart, checkout, payment proof)
-    // resolve the customer from the `X-Guest-Id` header, so forward token-less
-    // when one is present; public GETs also pass through; everything else 401s.
-    if (!guestIdHeader && !isPublicGet(pathname, request.method)) {
-      return Response.json(AUTH_FAILED_PAYLOAD, { status: 401 });
+  let authError = null;
+  if (hasSessionCookie(request)) {
+    try {
+      token = await getBackendAccessToken({ headers: request.headers });
+    } catch (error) {
+      authError = error;
     }
   }
 
-  const forwardedHeaders = {};
+  if (!token && !guestIdHeader && !publicGet) {
+    if (authError?.transient) {
+      return jsonResponse(AUTH_UNAVAILABLE_PAYLOAD, {
+        status: 503,
+        requestId,
+        retryAfter: 5,
+      });
+    }
+    return jsonResponse(AUTH_FAILED_PAYLOAD, { status: 401, requestId });
+  }
+
+  const forwardedHeaders = {
+    [HEADER_NAME]: requestId,
+  };
   for (const name of FORWARDED_HEADERS) {
     const value = request.headers.get(name);
     if (value) {
@@ -119,13 +156,20 @@ async function handle(request, { params }) {
       multipart,
       token,
       headers: forwardedHeaders,
+      signal: request.signal,
     });
   } catch {
-    return Response.json(BACKEND_UNAVAILABLE_PAYLOAD, { status: 502 });
+    return jsonResponse(BACKEND_UNAVAILABLE_PAYLOAD, {
+      status: 502,
+      requestId,
+      retryAfter: 2,
+    });
   }
 
-  return Response.json(result.payload ?? { success: result.ok }, {
+  return jsonResponse(result.payload ?? { success: result.ok }, {
     status: result.status,
+    requestId,
+    retryAfter: result.status === 503 || result.status === 504 ? 5 : undefined,
   });
 }
 

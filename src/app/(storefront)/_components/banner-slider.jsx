@@ -26,7 +26,7 @@ export function BannerSlider() {
   return (
     <section aria-label="Storefront Hero Slider" className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
       <div className="relative aspect-[21/9] w-full overflow-hidden rounded-3xl bg-slate-100 shadow-md sm:aspect-[24/8]">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={currentIndex}
             initial={{ opacity: 0 }}
@@ -41,6 +41,7 @@ export function BannerSlider() {
               fill
               sizes="(min-width: 1280px) 1216px, 100vw"
               preload={currentIndex === 0}
+              fetchPriority={currentIndex === 0 ? "high" : undefined}
               className="object-cover object-center"
             />
           </motion.div>

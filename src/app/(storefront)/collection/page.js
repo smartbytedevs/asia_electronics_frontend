@@ -84,12 +84,14 @@ export default async function CollectionPage({ searchParams }) {
   const { sort } = await searchParams;
   const safeSort = SORTS.has(sort) ? sort : "newest";
 
+  // Catalog failure propagates to the storefront error boundary instead of
+  // silently rendering an "empty catalog". Category chips are optional.
   const [data, categories] = await Promise.all([
     fetchProducts({
       sort: safeSort,
       limit: 48,
       includeRatings: true,
-    }).catch(() => null),
+    }),
     fetchCategories().catch(() => []),
   ]);
   const products = data?.products ?? [];

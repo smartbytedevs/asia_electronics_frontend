@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { apiClient } from "@/lib/api-client";
 import { normalizeReviewSummary } from "./review-summary";
 
@@ -19,10 +20,12 @@ function query(params) {
   return qs ? `?${qs}` : "";
 }
 
-export async function fetchCategories() {
+// Memoized per server render so the layout header/footer and the homepage
+// category grid share a single `/categories` request instead of three.
+export const fetchCategories = cache(async () => {
   const payload = await apiClient.get("/categories");
   return payload?.data?.categories ?? [];
-}
+});
 
 export async function fetchProductById(id) {
   const payload = await apiClient.get(`/products/${encodeURIComponent(id)}`);
@@ -52,45 +55,61 @@ export async function fetchProducts({
   );
   const products = payload?.data?.products ?? [];
 
-  // The listing endpoint (`GET /products`) returns card summaries without
-  // `variants`, but the size popover on ProductCard needs each active
-  // variant's `attributes.size`. Enrich each card with its variants from the
-  // existing detail endpoint so ProductCard receives the same variant data the
-  // product-details page already uses. A failed detail fetch keeps the card
-  // untouched (direct Add to Bag) rather than breaking the listing.
-  //
-  // The list also omits review aggregates, so callers that want ratings on
-  // their cards opt into `includeRatings` and receive the same average/count
-  // pair the product reviews endpoint exposes.
-  const enriched = await Promise.all(
-    products.map(async (product) => {
-      const [detail, rating] = await Promise.all([
-        fetchProductById(product.id).catch(() => null),
-        includeRatings
-          ? fetchProductRatingSummary(product.id).catch(() => null)
-          : null,
-      ]);
+  // The listing endpoint now embeds each card's active variants, so no
+  // per-product detail fan-out is needed. Ratings are optional and fetched in
+  // ONE batched request for the whole page (or skipped entirely).
+  let ratings = {};
+  if (includeRatings && products.length > 0) {
+    ratings = await fetchProductRatingSummaries(
+      products.map((product) => product.id)
+    ).catch(() => ({}));
+  }
 
-      let next = product;
-      if (Array.isArray(detail?.variants)) {
-        next = { ...next, variants: detail.variants };
-      }
-      if (rating && rating.totalReviews > 0) {
-        next = {
-          ...next,
-          averageRating: rating.averageRating,
-          reviewCount: rating.totalReviews,
-        };
-      }
-      return next;
-    })
-  );
+  const enriched = products.map((product) => {
+    const rating = ratings[product.id];
+    if (rating && rating.totalReviews > 0) {
+      return {
+        ...product,
+        averageRating: rating.averageRating,
+        reviewCount: rating.totalReviews,
+      };
+    }
+    return product;
+  });
 
   return {
     products: enriched,
     pagination: payload?.data?.pagination ?? null,
   };
 }
+
+/**
+ * Batched rating summaries for catalog cards — one backend query for the whole
+ * page instead of one `/products/:id/reviews` request per card.
+ */
+export async function fetchProductRatingSummaries(productIds) {
+  const ids = (productIds ?? []).filter(Boolean);
+  if (ids.length === 0) {
+    return {};
+  }
+  const payload = await apiClient.get(
+    `/products/ratings/summary?ids=${encodeURIComponent(ids.join(","))}`
+  );
+  return payload?.data?.ratings ?? {};
+}
+
+/**
+ * Homepage "New arrivals" query, memoized per request so the reviews section
+ * can reuse the same product list instead of issuing another `/products` call.
+ */
+export const fetchHomeNewArrivals = cache(async () => {
+  return fetchProducts({
+    newArrival: true,
+    sort: "newest",
+    limit: 8,
+    includeRatings: true,
+  });
+});
 
 export async function fetchCategoryBySlug(slug) {
   const payload = await apiClient.get(`/categories/slug/${encodeURIComponent(slug)}`);
@@ -136,11 +155,8 @@ export async function fetchProductReviews(productId) {
  * Fails soft: any product whose review fetch errors is skipped rather than
  * taking down the section.
  */
-export async function fetchRecentReviews({ limit = 6 } = {}) {
-  const payload = await apiClient.get(
-    `/products${query({ sort: "newest", limit: 8 })}`
-  );
-  const products = payload?.data?.products ?? [];
+export async function fetchRecentReviews({ limit = 6, products: provided } = {}) {
+  const products = provided ?? (await fetchHomeNewArrivals()).products ?? [];
   if (products.length === 0) return [];
 
   const perProduct = await Promise.all(

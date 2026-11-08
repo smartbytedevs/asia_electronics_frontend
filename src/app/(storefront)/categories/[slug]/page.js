@@ -99,12 +99,14 @@ export default async function CategoryPage({ params, searchParams }) {
   }
 
   const safeSort = SORTS.has(sort) ? sort : "newest";
+  // A catalog outage surfaces as the storefront error state instead of an
+  // empty category page.
   const data = await fetchProducts({
     categoryId: category.id,
     sort: safeSort,
     limit: 48,
     includeRatings: true,
-  }).catch(() => null);
+  });
   const products = data?.products ?? [];
   const categoryHasMore = hasMoreProducts(data?.pagination, products.length);
 

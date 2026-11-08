@@ -47,6 +47,30 @@ export function ProductCard({ product, className = "" }) {
   const { isSaved, toggle } = useWishlist();
   const saved = isSaved(product.id);
 
+  // Availability is only requested once the card is near the viewport, so
+  // below-the-fold cards don't compete with the hero for the initial network.
+  const cardRef = useRef(null);
+  const [availabilityEnabled, setAvailabilityEnabled] = useState(false);
+
+  useEffect(() => {
+    const node = cardRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setAvailabilityEnabled(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setAvailabilityEnabled(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   // 1. Check if variants array exists and has items
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
 
@@ -67,7 +91,9 @@ export function ProductCard({ product, className = "" }) {
   const hasSizeChoice = sizeOptions.length > 1;
 
   // Live availability — identical to the product detail page.
-  const { availability } = useProductAvailability(product.id);
+  const { availability } = useProductAvailability(product.id, {
+    enabled: availabilityEnabled,
+  });
   const availabilityReady = availability.status === "ready";
   const availabilityLoading = availability.status === "loading";
   const availabilityMap = availabilityReady ? availability.map : null;
@@ -170,6 +196,7 @@ export function ProductCard({ product, className = "" }) {
 
   return (
     <motion.article
+      ref={cardRef}
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.99 }}
       transition={{ duration: 0.3, ease: EASE }}

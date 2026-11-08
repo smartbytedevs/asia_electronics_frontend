@@ -1,55 +1,94 @@
 import { MongoClient } from "mongodb";
 
-/**
- * Server-only MongoDB connection for Better Auth persistence.
- *
- * Better Auth owns its own native MongoDB connection (never the backend's
- * Mongoose connection). The connection string is read from MONGODB_URI in the
- * server environment; the database name is taken from the URI itself (no
- * database name is hard-coded here).
- *
- * The MongoClient is cached on globalThis so the Next.js dev server (which
- * compiles route handlers and server components into separate module graphs)
- * reuses a single client and a single connection pool across hot reloads.
- * The MongoDB driver connects lazily on the first operation and pools
- * connections internally, so no `connect()` promise is kept.
- *
- * This module is imported only by server-side code (`src/lib/auth.js`). The
- * MONGODB_URI value is never logged and never included in client bundles.
- */
-
 const globalForTaqwa = globalThis;
 
-function getMongoClient() {
-  const uri = process.env.MONGODB_URI;
+const MONGO_OPTIONS = {
+  appName: "asia-electronics-web",
+  serverSelectionTimeoutMS:
+    Number.parseInt(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS, 10) || 8000,
+  connectTimeoutMS:
+    Number.parseInt(process.env.MONGODB_CONNECT_TIMEOUT_MS, 10) || 10000,
+  socketTimeoutMS:
+    Number.parseInt(process.env.MONGODB_SOCKET_TIMEOUT_MS, 10) || 45000,
+  waitQueueTimeoutMS:
+    Number.parseInt(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS, 10) || 10000,
+  maxPoolSize: Number.parseInt(process.env.MONGODB_MAX_POOL_SIZE, 10) || 10,
+  minPoolSize: Number.parseInt(process.env.MONGODB_MIN_POOL_SIZE, 10) || 0,
+  maxIdleTimeMS:
+    Number.parseInt(process.env.MONGODB_MAX_IDLE_TIME_MS, 10) || 60000,
+  retryReads: true,
+  retryWrites: true,
+};
 
+function mongoUri() {
+  const uri = process.env.MONGODB_URI;
   if (!uri) {
     throw new Error(
       "MONGODB_URI is not set. Add it to .env.local (see .env.example) so Better Auth can persist users and sessions."
     );
   }
+  return uri;
+}
 
-  if (!globalForTaqwa.__taqwaMongoClient) {
-    globalForTaqwa.__taqwaMongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 10_000,
-    });
+function isClientUnusable(client) {
+  if (!client) {
+    return true;
+  }
+  if (client.s?.hasBeenClosed === true) {
+    return true;
+  }
+  return client.topology?.s?.state === "closed";
+}
+
+function createMongoClient(uri) {
+  const client = new MongoClient(uri, MONGO_OPTIONS);
+  client.__taqwaUri = uri;
+  return client;
+}
+
+function getMongoClient() {
+  const uri = mongoUri();
+  const current = globalForTaqwa.__taqwaMongoClient;
+
+  if (current && current.__taqwaUri === uri && !isClientUnusable(current)) {
+    return current;
   }
 
-  return globalForTaqwa.__taqwaMongoClient;
+  if (current && !isClientUnusable(current)) {
+    current.close().catch(() => {});
+  }
+
+  const client = createMongoClient(uri);
+  globalForTaqwa.__taqwaMongoClient = client;
+  return client;
 }
 
-/**
- * Returns the shared MongoClient used by Better Auth.
- * @returns {MongoClient}
- */
+const dbProxy = new Proxy(
+  {},
+  {
+    get(_target, property) {
+      const db = getMongoClient().db();
+      const value = db[property];
+      return typeof value === "function" ? value.bind(db) : value;
+    },
+  }
+);
+
+const clientProxy = new Proxy(
+  {},
+  {
+    get(_target, property) {
+      const client = getMongoClient();
+      const value = client[property];
+      return typeof value === "function" ? value.bind(client) : value;
+    },
+  }
+);
+
 export function getBetterAuthMongoClient() {
-  return getMongoClient();
+  return clientProxy;
 }
 
-/**
- * Returns the Better Auth database handle derived from MONGODB_URI.
- * @returns {import("mongodb").Db}
- */
 export function getBetterAuthDb() {
-  return getMongoClient().db();
+  return dbProxy;
 }

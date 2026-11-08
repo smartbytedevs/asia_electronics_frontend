@@ -1,7 +1,11 @@
 import { env } from "@/config/env";
+import { createRequestId, HEADER_NAME } from "@/lib/request-id";
 
 const NETWORK_ERROR_MESSAGE =
   "The backend is currently unavailable. Please try again later.";
+const REQUEST_TIMEOUT_MS = 12_000;
+const GET_RETRY_ATTEMPTS = 2;
+const GET_RETRY_DELAY_MS = 400;
 
 /**
  * Exact, safe messages for the security-critical statuses. These are always
@@ -23,6 +27,9 @@ const STATUS_MESSAGES = {
   409: "The request conflicts with the current state of the resource.",
   422: "The request could not be processed because it failed validation.",
   500: "The backend returned an internal server error. Please try again later.",
+  502: "The backend is temporarily unavailable. Please try again shortly.",
+  503: "The service is temporarily unavailable. Please try again shortly.",
+  504: "The backend took too long to respond. Please try again shortly.",
 };
 
 const GENERIC_ERROR_MESSAGE =
@@ -82,11 +89,30 @@ async function parsePayload(response) {
  * caller can forward the exact backend status and envelope without losing
  * error bodies (used by the authenticated proxy route).
  */
+function isRetryableStatus(status) {
+  return status === 500 || status === 502 || status === 503 || status === 504;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function request(
   path,
-  { method = "GET", body, token, headers: extraHeaders, multipart = false } = {}
+  {
+    method = "GET",
+    body,
+    token,
+    headers: extraHeaders,
+    multipart = false,
+    signal,
+  } = {}
 ) {
+  const methodUpper = String(method).toUpperCase();
+  const canRetry = methodUpper === "GET" || methodUpper === "HEAD";
+  const attempts = canRetry ? GET_RETRY_ATTEMPTS : 1;
   const headers = new Headers({ Accept: "application/json" });
+
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
@@ -100,22 +126,55 @@ async function request(
       }
     }
   }
+  if (!headers.has(HEADER_NAME)) {
+    headers.set(HEADER_NAME, createRequestId());
+  }
 
   let response;
-  try {
-    response = await fetch(`${env.api.baseUrl}${path}`, {
-      method,
-      headers,
-      body:
-        body !== undefined
-          ? multipart
-            ? body
-            : JSON.stringify(body)
-          : undefined,
-      cache: "no-store",
-    });
-  } catch {
-    throw new ApiClientError(NETWORK_ERROR_MESSAGE, { status: 0 });
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+      const requestSignal =
+        signal && typeof AbortSignal.any === "function"
+          ? AbortSignal.any([signal, timeoutSignal])
+          : timeoutSignal;
+
+      response = await fetch(`${env.api.baseUrl}${path}`, {
+        method,
+        headers,
+        body:
+          body !== undefined
+            ? multipart
+              ? body
+              : JSON.stringify(body)
+            : undefined,
+        cache: "no-store",
+        signal: requestSignal,
+      });
+    } catch {
+      if (signal?.aborted) {
+        throw new ApiClientError(NETWORK_ERROR_MESSAGE, {
+          status: 0,
+          code: "REQUEST_ABORTED",
+        });
+      }
+      if (canRetry && attempt < attempts - 1) {
+        await wait(GET_RETRY_DELAY_MS);
+        continue;
+      }
+      throw new ApiClientError(NETWORK_ERROR_MESSAGE, {
+        status: 0,
+        code: "BACKEND_UNAVAILABLE",
+      });
+    }
+
+    if (canRetry && attempt < attempts - 1 && isRetryableStatus(response.status)) {
+      await response.body?.cancel().catch(() => {});
+      await wait(GET_RETRY_DELAY_MS);
+      continue;
+    }
+
+    break;
   }
 
   const payload = await parsePayload(response);

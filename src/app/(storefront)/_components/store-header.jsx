@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { BrandLogo } from "./brand";
 import { CartButton } from "./cart-button";
 import { MobileMenu } from "./mobile-menu";
@@ -22,14 +20,7 @@ const FALLBACK_NAV = [
  * category nav strip. Server-rendered; interactive pieces (search, cart,
  * mobile menu) are small client islands.
  */
-export async function StoreHeader({ categories }) {
-  let session = null;
-  try {
-    session = await auth.api.getSession({ headers: await headers() });
-  } catch {
-    session = null;
-  }
-
+export function StoreHeader({ categories = [], session = null }) {
   const accountHref = session?.user ? "/account" : "/login";
   const accountLabel = session?.user ? "Account" : "Sign in";
 

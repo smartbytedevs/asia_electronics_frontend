@@ -1,12 +1,72 @@
 import { auth } from "@/lib/auth";
 import { apiClient } from "@/lib/api-client";
 
+const TRANSIENT_ERROR_NAMES = new Set([
+  "MongooseServerSelectionError",
+  "MongoServerSelectionError",
+  "MongoNetworkError",
+  "MongoNetworkTimeoutError",
+  "MongoTopologyClosedError",
+  "MongoNotConnectedError",
+  "MongoTimeoutError",
+  "MongooseTimeoutError",
+  "PoolClearedError",
+]);
+
+const TRANSIENT_ERROR_CODES = new Set([
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ETIMEDOUT",
+  "ESOCKETTIMEDOUT",
+]);
+
+function isTransientAuthError(error) {
+  if (!error) {
+    return false;
+  }
+
+  const status = error.statusCode || error.status;
+  if (typeof status === "number" && status >= 500) {
+    return true;
+  }
+
+  if (TRANSIENT_ERROR_NAMES.has(error.name) || TRANSIENT_ERROR_CODES.has(error.code)) {
+    return true;
+  }
+
+  if (error.errorLabelSet && typeof error.errorLabelSet.has === "function") {
+    if (
+      error.errorLabelSet.has("RetryableError") ||
+      error.errorLabelSet.has("SystemOverloadedError") ||
+      error.errorLabelSet.has("ResetPool")
+    ) {
+      return true;
+    }
+  }
+
+  const message = String(error.message || "").toLowerCase();
+  return [
+    "server selection timed out",
+    "could not connect to any servers",
+    "topology is closed",
+    "not connected",
+    "buffering timed out",
+    "connection reset",
+    "network timeout",
+  ].some((fragment) => message.includes(fragment));
+}
+
 export class BackendAccessTokenError extends Error {
   constructor(
-    message = "Could not obtain a backend access token from your session."
+    message = "Could not obtain a backend access token from your session.",
+    { transient = false, status = 401 } = {}
   ) {
     super(message);
     this.name = "BackendAccessTokenError";
+    this.transient = transient;
+    this.status = status;
   }
 }
 
@@ -34,8 +94,11 @@ export async function getBackendAccessToken({ headers } = {}) {
   let result;
   try {
     result = await auth.api.getToken({ headers });
-  } catch {
-    throw new BackendAccessTokenError();
+  } catch (error) {
+    throw new BackendAccessTokenError(undefined, {
+      transient: isTransientAuthError(error),
+      status: error?.statusCode || error?.status || 401,
+    });
   }
 
   const token = result?.token;
