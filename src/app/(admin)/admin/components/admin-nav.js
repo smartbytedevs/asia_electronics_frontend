@@ -47,6 +47,16 @@ const NAV_GROUPS = [
       { href: "/admin/courier", label: "Courier", icon: "courier" },
     ],
   },
+  {
+    label: "Configuration",
+    items: [
+      {
+        href: "/admin/pixel-settings",
+        label: "Pixel Settings",
+        icon: "dashboard",
+      },
+    ],
+  },
 ];
 
 export function AdminNav() {

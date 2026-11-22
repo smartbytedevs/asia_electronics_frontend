@@ -1,5 +1,8 @@
 import localFont from "next/font/local";
+import Script from "next/script";
 import { SITE_URL, SITE_DESCRIPTION, absoluteUrl } from "@/lib/seo";
+import { apiClient } from "@/lib/api-client";
+import { MetaPixelPageView } from "@/components/meta-pixel-page-view";
 import "./globals.css";
 
 // Self-hosted variable font (woff2 committed under src/app/fonts/). No
@@ -76,11 +79,35 @@ export const viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  let fbPixelId = "";
+  try {
+    const payload = await apiClient.get("/settings");
+    fbPixelId = payload?.data?.settings?.fbPixelId ?? "";
+  } catch {
+    fbPixelId = "";
+  }
+
+  // JSON.stringify quotes and escapes the value; stripping "<" keeps the
+  // inline script safe even if an unexpected value was stored.
+  const pixelIdForScript = JSON.stringify(fbPixelId.replace(/</g, ""));
+
   return (
     <html lang="en" className={`${jost.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-white text-ink">
         {children}
+        {fbPixelId ? (
+          <>
+            <Script
+              id="meta-pixel-base"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', ${pixelIdForScript});fbq('track', 'PageView');`,
+              }}
+            />
+            <MetaPixelPageView />
+          </>
+        ) : null}
       </body>
     </html>
   );

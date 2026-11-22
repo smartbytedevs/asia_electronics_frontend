@@ -9,6 +9,7 @@ import { EmptyState } from "../../_components/empty-state";
 import { Reveal } from "../../_components/reveal";
 import { ChevronRightIcon, GemIcon, StarIcon } from "../../_components/icons";
 import { formatDate } from "@/lib/utils";
+import { TrackViewContent } from "@/components/track-view-content";
 import { SITE_URL, absoluteUrl, absoluteImageUrls } from "@/lib/seo";
 import {
   fetchProductBySlug,
@@ -456,6 +457,7 @@ export default async function ProductPage({ params }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
+      <TrackViewContent productId={product.id} productName={product.name} price={price} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

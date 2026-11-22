@@ -8,6 +8,8 @@ import { authClient } from "@/lib/auth-client";
 import { checkoutOrder } from "@/lib/api/orders";
 import { getPaymentMethods } from "@/lib/api/payments";
 import { safeMessage } from "@/lib/api/http";
+import { TrackInitiateCheckout } from "@/components/track-initiate-checkout";
+import { TrackPurchase } from "@/components/track-purchase";
 import { useCart } from "../_components/cart-context";
 import { EmptyState } from "../_components/empty-state";
 import { formatMinorUnits, formatDate } from "@/lib/utils";
@@ -544,13 +546,16 @@ export default function CheckoutPage() {
 
   if (placedOrder) {
     return (
-      <OrderConfirmation
-        order={placedOrder}
-        manualMethod={selectedManual}
-        initialPaymentForm={paymentForm}
-        initialProof={proof}
-        isSignedIn={isSignedIn}
-      />
+      <>
+        <TrackPurchase order={placedOrder} />
+        <OrderConfirmation
+          order={placedOrder}
+          manualMethod={selectedManual}
+          initialPaymentForm={paymentForm}
+          initialProof={proof}
+          isSignedIn={isSignedIn}
+        />
+      </>
     );
   }
 
@@ -573,6 +578,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
+      <TrackInitiateCheckout items={items} total={estimatedTotalMinorUnits / 100} />
       <header>
         <p className="text-[0.64rem] font-semibold uppercase tracking-[0.3em] text-electric">
           Checkout

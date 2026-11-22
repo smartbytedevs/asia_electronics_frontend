@@ -19,6 +19,7 @@ import {
   updateCartItem,
 } from "@/lib/api/cart";
 import { safeMessage } from "@/lib/api/http";
+import { trackEvent } from "@/lib/meta-pixel";
 
 const CART_STORAGE_KEY = "taqwa.cart.v1";
 const CART_SYNCED_KEY = "taqwa.cart.v1.synced";
@@ -339,6 +340,14 @@ export function CartProvider({ children }) {
             setItems(mapped);
           }
           showToast("Added to your cart");
+          trackEvent("AddToCart", {
+            content_ids: [entry.productId],
+            content_name: entry.name,
+            content_type: "product",
+            value: (Number(entry.unitPriceMinorUnits) / 100) * entry.quantity,
+            currency: "BDT",
+            contents: [{ id: entry.productId, quantity: entry.quantity }],
+          });
         } else {
           showToast(safeMessage(res.status, res.payload));
         }
@@ -360,6 +369,14 @@ export function CartProvider({ children }) {
         return [...prev, { ...entry, quantity: Math.min(entry.quantity, MAX_QUANTITY) }];
       });
       showToast("Added to your cart");
+      trackEvent("AddToCart", {
+        content_ids: [entry.productId],
+        content_name: entry.name,
+        content_type: "product",
+        value: (Number(entry.unitPriceMinorUnits) / 100) * entry.quantity,
+        currency: "BDT",
+        contents: [{ id: entry.productId, quantity: entry.quantity }],
+      });
     },
     [mode, markGuestDirty, showToast]
   );
