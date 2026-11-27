@@ -20,8 +20,8 @@ import {
 export const TRUST_ITEMS = [
   {
     icon: ShieldIcon,
-    title: "100% genuine",
-    copy: "Official warranty on every product",
+    title: "Quality electronics",
+    copy: "Warranty as per seller policy",
   },
   {
     icon: TruckIcon,
@@ -140,8 +140,8 @@ export const BESTSELLER_TRACKS = [
 ];
 
 export const SERVICE_PROMISES = [
-  "Genuine products",
-  "Official warranty",
+  "Quality electronics",
+  "Warranty as per seller policy",
   "7-day replacement",
   "Cash on delivery",
 ];

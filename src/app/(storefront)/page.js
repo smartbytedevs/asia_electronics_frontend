@@ -34,9 +34,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const HOMEPAGE_TITLE = "Asia Electronics — Genuine Tech, Better Everyday";
+const HOMEPAGE_TITLE = "Asia Electronics — Quality Electronics, Better Everyday";
 const HOMEPAGE_DESCRIPTION =
-  "Shop genuine speakers, sound boxes, rechargeable torch lights, electric fans, trimmers and grooming devices at Asia Electronics — official warranty and delivery across Chittagong and Bangladesh.";
+  "Shop quality speakers, sound boxes, rechargeable torch lights, electric fans, trimmers and grooming devices at Asia Electronics — warranty as per seller policy and delivery across Chittagong and Bangladesh.";
 
 export const metadata = {
   title: { absolute: HOMEPAGE_TITLE },
@@ -281,7 +281,7 @@ function DealsSection() {
               Good prices on sound, light, fans &amp; accessories.
             </h3>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/65">
-              Genuine stock, official warranty and delivery across Bangladesh.
+              Quality electronics, warranty as per seller policy and delivery across Bangladesh.
             </p>
           </div>
           <div className="relative mt-8 flex flex-wrap items-center gap-3">
@@ -509,7 +509,7 @@ export default function HomePage() {
         url: SITE_URL,
         logo: absoluteUrl("/logo/logo.png"),
         description: HOMEPAGE_DESCRIPTION,
-        slogan: "Genuine tech, better everyday",
+        slogan: "Quality electronics, better everyday",
         telephone: SITE_CONTACT.phoneTel,
         email: SITE_CONTACT.email,
         address: {
@@ -553,7 +553,7 @@ export default function HomePage() {
 
   return (
     <>
-      <h1 className="sr-only">Asia Electronics — genuine tech, better everyday</h1>
+      <h1 className="sr-only">Asia Electronics — quality electronics, better everyday</h1>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -9,7 +9,7 @@ import {
   WhatsappIcon,
 } from "./icons";
 import { PAYMENT_METHODS } from "../lib/home-content";
-import { SITE_ADDRESS_LINES, SITE_CONTACT, whatsappHref } from "@/lib/site-contact";
+import { SITE_CONTACT, whatsappHref } from "@/lib/site-contact";
 
 const SOCIAL_LINKS = [
   {
@@ -24,6 +24,13 @@ const CARE_LINKS = [
   { label: "My account", href: "/account" },
   { label: "Your cart", href: "/cart" },
   { label: "Sign in", href: "/login" },
+];
+
+const POLICY_LINKS = [
+  { label: "Privacy policy", href: "/privacy-policy" },
+  { label: "Terms", href: "/terms" },
+  { label: "Refund policy", href: "/refund-policy" },
+  { label: "About us", href: "/about" },
 ];
 
 const FALLBACK_SHOP_LINKS = [
@@ -54,18 +61,18 @@ export function StoreFooter({ categories }) {
   return (
     <footer className="bg-ink text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.75fr_0.75fr_1.15fr] lg:gap-12">
+        <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.75fr_0.75fr_0.75fr_1.15fr] lg:gap-12">
           <div>
             <BrandLogo tone="light" />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/55">
-              Genuine electronics, official warranty and honest advice. Asia
-              Electronics brings dependable everyday products to Bangladesh —
-              with support that continues long after checkout.
+              Quality electronics and honest advice. Asia Electronics brings
+              dependable everyday products to Bangladesh — with support that
+              continues long after checkout.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-white/60">
                 <ShieldIcon className="h-3.5 w-3.5 text-electric" />
-                Official warranty
+                Warranty as per seller policy
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-white/60">
                 <BoltIcon className="h-3.5 w-3.5 text-electric" />
@@ -126,17 +133,31 @@ export function StoreFooter({ categories }) {
 
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">
+              Policies
+            </h3>
+            <ul className="mt-5 space-y-2.5 text-sm">
+              {POLICY_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-white/70 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">
               Get in touch
             </h3>
             <ul className="mt-5 space-y-3.5 text-sm text-white/70">
               <li className="flex items-start gap-3">
                 <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-electric" />
                 <span className="leading-relaxed">
-                  {SITE_ADDRESS_LINES.map((line) => (
-                    <span key={line} className="block">
-                      {line}
-                    </span>
-                  ))}
+                  95/12 Jahanara Mension, Amtol, Riazuddin Bazar, Chittagong
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -175,7 +196,7 @@ export function StoreFooter({ categories }) {
           <p>
             © {new Date().getFullYear()} Asia Electronics. All rights reserved.
           </p>
-          <p>Genuine tech, better everyday — made for Bangladesh.</p>
+          <p>Quality electronics, better everyday — made for Bangladesh.</p>
         </div>
       </div>
     </footer>

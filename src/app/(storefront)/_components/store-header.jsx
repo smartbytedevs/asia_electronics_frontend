@@ -43,7 +43,7 @@ export function StoreHeader({ categories = [], session = null }) {
           <p className="hidden items-center gap-4 text-[0.62rem] font-medium uppercase tracking-[0.18em] text-white/55 sm:flex">
             <span className="inline-flex items-center gap-1.5">
               <ShieldIcon className="h-3.5 w-3.5 text-electric" />
-              Official warranty
+              Warranty as per seller policy
             </span>
             <span className="inline-flex items-center gap-1.5">
               <BoltIcon className="h-3.5 w-3.5 text-electric" />

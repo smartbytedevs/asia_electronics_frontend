@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 const SORTS = new Set(["newest", "priceAsc", "priceDesc", "featured"]);
 
 const COLLECTION_DESCRIPTION =
-  "Browse all Asia Electronics products — speakers, sound boxes, rechargeable torch lights, electric fans, trimmers and grooming devices, with official warranty and delivery across Chittagong and Bangladesh.";
+  "Browse all Asia Electronics products — speakers, sound boxes, rechargeable torch lights, electric fans, trimmers and grooming devices, with warranty as per seller policy and delivery across Chittagong and Bangladesh.";
 
 export const metadata = {
   title: "All Products",

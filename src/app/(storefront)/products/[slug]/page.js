@@ -33,7 +33,7 @@ export async function generateMetadata({ params }) {
         ? rawDescription.slice(0, 155)
         : `Shop ${product.name}${
             product.category?.name ? ` in ${product.category.name}` : ""
-          } at Asia Electronics — genuine product, official warranty and delivery across Bangladesh.`;
+          } at Asia Electronics — quality product, warranty as per seller policy and delivery across Bangladesh.`;
       const ogImage = product.images?.[0]?.url || "/bg.jpg";
       const keywords = [
         product.name,

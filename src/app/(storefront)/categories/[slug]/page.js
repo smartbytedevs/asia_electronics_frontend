@@ -27,7 +27,7 @@ export async function generateMetadata({ params }) {
           : "";
       const description = rawDescription
         ? rawDescription.slice(0, 155)
-        : `Shop ${category.name} at Asia Electronics — genuine products, official warranty and delivery across Chittagong and Bangladesh.`;
+        : `Shop ${category.name} at Asia Electronics — quality products, warranty as per seller policy and delivery across Chittagong and Bangladesh.`;
       return {
         title: category.name,
         description,
@@ -114,7 +114,7 @@ export default async function CategoryPage({ params, searchParams }) {
   const categoryDescription =
     typeof category.description === "string" && category.description.trim()
       ? category.description.trim()
-      : `Shop ${category.name} at Asia Electronics — genuine products, official warranty and delivery across Chittagong and Bangladesh.`;
+      : `Shop ${category.name} at Asia Electronics — quality products, warranty as per seller policy and delivery across Chittagong and Bangladesh.`;
   const productItems = products
     .filter((product) => product?.slug)
     .map((product, index) => ({

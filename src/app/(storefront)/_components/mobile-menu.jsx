@@ -232,7 +232,7 @@ export function MobileMenu({ categories, accountHref, accountLabel }) {
                 >
                   <BrandLogo />
                   <span className="text-[0.58rem] font-semibold uppercase tracking-[0.2em] text-muted">
-                    Genuine tech
+                    Quality electronics
                   </span>
                 </motion.div>
               </motion.div>

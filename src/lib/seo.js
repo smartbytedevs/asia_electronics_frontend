@@ -3,7 +3,7 @@ const PRODUCTION_SITE_URL = "https://www.asiaelectronicsonline.com";
 
 export const SITE_NAME = "Asia Electronics";
 export const SITE_DESCRIPTION =
-  "Shop genuine speakers, sound boxes, torch lights, fans, trimmers and grooming devices at Asia Electronics. Official warranty and delivery across Chittagong and Bangladesh.";
+  "Shop quality speakers, sound boxes, torch lights, fans, trimmers and grooming devices at Asia Electronics. Warranty as per seller policy and delivery across Chittagong and Bangladesh.";
 
 /**
  * Normalizes the configured site URL to the canonical HTTPS/www origin.

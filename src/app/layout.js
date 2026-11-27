@@ -22,7 +22,7 @@ export const metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: BRAND,
   title: {
-    default: "Asia Electronics — Genuine Tech, Better Everyday",
+    default: "Asia Electronics — Quality Electronics, Better Everyday",
     template: "%s | Asia Electronics",
   },
   description: DESCRIPTION,
@@ -44,7 +44,7 @@ export const metadata = {
     "electric fans",
     "trimmers",
     "grooming devices",
-    "official warranty",
+    "warranty as per seller policy",
   ],
   robots: {
     index: true,
@@ -55,7 +55,7 @@ export const metadata = {
     siteName: BRAND,
     locale: "en_BD",
     url: absoluteUrl("/"),
-    title: "Asia Electronics — Genuine Tech, Better Everyday",
+    title: "Asia Electronics — Quality Electronics, Better Everyday",
     description: DESCRIPTION,
     images: [
       {
@@ -68,7 +68,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Asia Electronics — Genuine Tech, Better Everyday",
+    title: "Asia Electronics — Quality Electronics, Better Everyday",
     description: DESCRIPTION,
     images: [absoluteUrl("/bg.jpg")],
   },
